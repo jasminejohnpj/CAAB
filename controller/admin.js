@@ -8,7 +8,7 @@ const roles = require('../model/role');
 const employee = require('../model/employee');
 const sections = require('../model/section');
 const documents = require('../model/documents');
-const { where } = require('sequelize');
+
 //const multer = require("multer")
 //var admin = require("firebase-admin");
 //var serviceAccount = require("../service.json");
@@ -19,7 +19,9 @@ const { where } = require('sequelize');
 
 //const upload = multer({dest: 'uploads/'})
 //const storage = admin.storage().bucket();
-           ////////////////////// Add Sector  ///////////////////////
+const { where } = require('sequelize');
+
+           //////////////////////  Sectors  ///////////////////////
 router.post('/addSector',async(req,res)=>{
   try{
     const{sector_name}=req.body;
@@ -33,7 +35,9 @@ router.post('/addSector',async(req,res)=>{
 
 router.get('/listSector',async(req,res)=>{
   try{
-    const data = await sector.findAll();
+    const data = await sector.findAll({
+      attributes: ['sector_name','id'], 
+    });
     return res.status(200).json({message:"List of sectors",data});
   }
   catch(error){
@@ -41,10 +45,10 @@ router.get('/listSector',async(req,res)=>{
   }
  });
 
- router.put('/updateSector/:id',async(req,res)=>{
+router.put('/updateSector/:id',async(req,res)=>{
   try{
     const id = req.params.id;
-    const value=req.body;
+    const value = req.body;
     if(!id){
       return res.status(404).json({message:"id not found"});
     }
@@ -52,8 +56,8 @@ router.get('/listSector',async(req,res)=>{
     if(!idsector){
       return res.status(401).json({message:"sector id not existing"});
     }
-    await sector.update(value,{where:{id}});
-    return res.status(200).json({message:'updated',value});
+     await sector.update(value,{where:{id}});
+    return res.status(200).json({message:' data updated successfully'});
   }
   catch(error){
     console.log(error);
@@ -67,11 +71,11 @@ router.delete('/deleteSector/:id',async(req,res)=>{
     if(!id){
       return res.status(500).json({message:"id not found"})
     }
-    const idsector = await sector.findOne({where:{id}});
-    if(!idsector){
+    const data = await sector.findOne({where:{id}});
+    if(!data){
       return res.status(401).json({message:"sector id not existing"});
     }
-    await idsector.destroy();
+    await data.destroy();
     return res.status(200).json({message:"data successfully deleted"});
   }
   catch(error){
@@ -80,17 +84,23 @@ router.delete('/deleteSector/:id',async(req,res)=>{
   }
 });
 
-           ///////////////////// Add Department //////////////////////
-router.post('/addDept',async(req,res)=>{
-  try{
-    const {dept_name}=req.body;
-    await dept.create({dept_name});
-    return res.status(200).json({message:"Dept added successfully"});
-  }
-  catch(error){
-    return res.status(500).json({message:"Internal server error",error});
-  }
- });
+           ///////////////////// Departments //////////////////////
+router.post('/addDept', async (req, res) => {
+  try {
+    const { dept_name, sector_name } = req.body;
+      if (!dept_name || !sector_name) {
+        return res.status(400).json({ message: "Missing department name or sector name" });
+      }
+    const department = await dept.create({
+      sector_name,
+      dept_name
+    });
+    return res.status(200).json({ message: "Department added successfully", department });
+    } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error", error });
+    }
+ });       
 
 router.get('/listDept',async(req,res)=>{
   try{
@@ -126,7 +136,6 @@ router.get('/listDept',async(req,res)=>{
   }
 });
 
-
 router.delete('/deleteDept/:id',async(req,res)=>{
   try{
     const id=req.params.id;
@@ -147,11 +156,14 @@ router.delete('/deleteDept/:id',async(req,res)=>{
  });
 
 
-       //////////////////////////  Add Act ////////////////////////////////
+       //////////////////////////   Acts ////////////////////////////////
 router.post('/addActs',async(req,res)=>{
   try{
-    const data=req.body;
-    await act.create(data);
+    const {act_name , dept_name }=req.body;
+    const data = await act.create({
+      act_name,
+      dept_name
+    });
     return res.status(200).json({message:"acts added successfully",data});
   }
   catch(error){
@@ -161,7 +173,7 @@ router.post('/addActs',async(req,res)=>{
 
 router.get('/listActs',async(req,res)=>{
   try{
-    const data=await act.findAll();
+    const data = await act.findAll();
     return res.status(200).json({message:"List of acts",data});
   }
   catch(error){
@@ -176,8 +188,8 @@ router.get('/listActs',async(req,res)=>{
     if(!id){
       return res.status(404).json({message:"id not found"});
     }
-    const idacts = await act.findOne({where:{id}});
-    if(!idacts){
+    const act = await act.findOne({where:{id}});
+    if(!act){
       return res.status(404).json({message:"act id not existing"});
     }
     await act.update(value,{where:{id}});
@@ -187,17 +199,18 @@ router.get('/listActs',async(req,res)=>{
     return res.status(500).json({message:"Internal server error",error});
   }
 });
+
 router.delete('/deleteActs/:id',async(req,res)=>{
   try{
     const id = req.params.id;
     if(!id){
       return res.status(404).json({message:"id not found"});
     }
-    const actid = await act.findOne({where:{id}});
-    if(!actid){
+    const data = await act.findOne({where:{id}});
+    if(!data){
       return res.status(401).json({message:"id not existing"});
     }
-    await actid.destroy();
+    await data.destroy();
     return res.status(200).json({message:"deleted successfully"});
   }
   catch(error){
@@ -205,7 +218,7 @@ router.delete('/deleteActs/:id',async(req,res)=>{
   }
 });
 
-    ////////////// Add Section ////////////////////////
+       //////////////////////////   Sections ////////////////////////////////           
 router.post('/createSection' , async(req,res) =>{
   try{
     const {act,section,violation_description,penalty_description,penalty_amount,penalty_point} = req.body;
@@ -224,6 +237,43 @@ router.post('/createSection' , async(req,res) =>{
   }
  });
 
+router.get('/listSection' , async(req,res) =>{
+  try{
+    const data = await sections.findAll();
+    return res.status(200).json({message:"List of sections",data});
+  } catch(error){
+    console.error(error);
+    return res.status(500).json({message:"Internal server error",error});
+  }
+ });
+
+router.put('/updateSections/:id' , async (req,res)=>{
+  try{
+    const id = req.params.id;
+    const data = req.body;
+    const sectiondata = await sections.update(data,{where:{id}});
+    return res.status(200).json({message:"Section data updated successfully"});
+  } catch(error){
+    console.error(error);
+    return res.status(500).json({message:"Internal server error",error});
+  }
+ });
+
+router.delete('/deleteSection/:id', async(req,res) =>{
+  try{
+    const id = req.params.id;
+    const data = await sections.findOne({where:{id}});
+    if(!data){
+      return res.status(404).json({message:"id not found"});
+    }
+   const section = await data.destroy();
+    return res.status(200).json({message:"Deleted successfully" , section});
+  } catch(error){
+    console.error(error);
+    return res.status(500).json({message:"Internal server error",error});
+  }
+});
+           ////////////////// Documentation ////////////////////
 router.post('/createDocument' , async(req, res) =>{
   try{
     const { act , document_description, penalty_description, penalty_amount,penalty_point} = req.body;
@@ -241,20 +291,42 @@ router.post('/createDocument' , async(req, res) =>{
   }
  });
 
-router.get('/listSections/:act' , async (req,res)=>{
+ router.get('/listDocuments' , async(req,res)=>{
   try{
-    const act = req.params.act;
-    const sectiondata = await sections.findAll({where:{act},
-    });
-    const documentdata = await documents.findAll({where:{act},
-    });
-    return res.status(200).json({message:"List of sections",sectiondata,documentdata});
+    const data = await documents.findAll();
+    return res.status(200).json({message: "List of documents",data});
+
   } catch(error){
     console.error(error);
     return res.status(500).json({message:"Internal server error",error});
   }
  });
  
+ router.get('/actDocuments/:act' , async(req, res) =>{
+  try{
+    const act = req.params.act;
+    const data = await documents.findAll({where:{act:act}});
+    if(!data){
+      return res.status(404).json({message:"no data found "});
+    }
+    return res.status(200).json({message:"List of documents for the act",data});
+  } catch(error){
+    console.error(error);
+    return res.status(500).json({message:"Internal server error",error});
+  }
+ });
+
+ router.put('/updateDocument/:id' , async(req,res)=>{
+  try{
+    const id = req.params.id;
+    const data = req.body;
+    const documentsdata = await documents.update(data,{where:{id}});
+    return res.status(200).json({message:'documents updated successfully', documentsdata}); 
+  } catch(error){
+    console.log(error);
+    return res.status(500).json({message:'Internal server error'});
+  }
+ });
        /////////////////////// Department to Sector //////////////////////////
        
 router.post('/addDeptSector',async(req,res)=>{
@@ -390,6 +462,9 @@ router.post('/createRole', async(req,res) =>{
     return res.status(500).json({message:"Internal server error", error});
   }
  });
+
+
+
 
 // router.post('/createEmployee' , upload.single('Image'), async(req,res) =>{
 //   try{

@@ -14,7 +14,7 @@ const employee= sequelize.define('employee',{
   aadhar:{type:DataTypes.STRING,defaultValue:"" },
   address:{type:DataTypes.STRING,defaultValue:"" },
   image:{type:DataTypes.STRING,defaultValue:"" },
-});
+},{timestamps:false});
 
 sequelize.sync({alter:true})
 .then(()=>{

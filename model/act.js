@@ -9,7 +9,8 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 
 const act= sequelize.define('ACT',{
   act_name:{type:DataTypes.STRING,defaultValue:"" },
-});
+  dept_name:{type:DataTypes.STRING,defaultValue:"" },
+},{timestamps:false});
 
 sequelize.sync({alter:true})
 .then(()=>{

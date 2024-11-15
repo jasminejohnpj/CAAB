@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { Timestamp } = require('firebase-admin/firestore');
 const {DataTypes,Sequelize}= require('sequelize');
 const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.env.DB_PASSWORD,{
   dialect:process.env.DB_DIALECT,
@@ -8,8 +9,9 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 });
 
 const dept= sequelize.define('dept',{
-  dept_name:{type:DataTypes.STRING,defaultValue:"" }
-});
+  dept_name:{type:DataTypes.STRING,defaultValue:"" },
+  sector_name:{type:DataTypes.STRING,defaultValue:"" }
+},{timestamps:false});
 
 sequelize.sync({alter:true})
 .then(()=>{

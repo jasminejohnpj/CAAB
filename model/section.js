@@ -13,7 +13,7 @@ const sections = sequelize.define('section',{
   penalty_description:{type:DataTypes.STRING,defaultValue:"" },
   penalty_amount:{type:DataTypes.STRING,defaultValue:"" },
   penalty_point:{type:DataTypes.STRING,defaultValue:"" }
-});
+},{timestamps:false});
 
 sequelize.sync({alter:true})
 .then(()=>{
