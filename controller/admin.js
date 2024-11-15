@@ -8,6 +8,7 @@ const roles = require('../model/role');
 const employee = require('../model/employee');
 const sections = require('../model/section');
 const documents = require('../model/documents');
+const { where } = require('sequelize');
 //const multer = require("multer")
 //var admin = require("firebase-admin");
 //var serviceAccount = require("../service.json");
@@ -40,12 +41,16 @@ router.get('/listSector',async(req,res)=>{
   }
  });
 
-router.put('/updateSector/:id',async(req,res)=>{
+ router.put('/updateSector/:id',async(req,res)=>{
   try{
     const id = req.params.id;
     const value=req.body;
     if(!id){
-      return res.status(404).json({message:"not found"});
+      return res.status(404).json({message:"id not found"});
+    }
+    const idsector = await sector.findOne({where:{id}});
+    if(!idsector){
+      return res.status(401).json({message:"sector id not existing"});
     }
     await sector.update(value,{where:{id}});
     return res.status(200).json({message:'updated',value});
@@ -54,7 +59,7 @@ router.put('/updateSector/:id',async(req,res)=>{
     console.log(error);
     return res.status(500).json({message:"Internal server error"});
   }
- });
+});
 
 router.delete('/deleteSector/:id',async(req,res)=>{
   try{
@@ -62,16 +67,18 @@ router.delete('/deleteSector/:id',async(req,res)=>{
     if(!id){
       return res.status(500).json({message:"id not found"})
     }
-    const valueid= await sector.findOne ({where:{id}});
-    await valueid.destroy();
+    const idsector = await sector.findOne({where:{id}});
+    if(!idsector){
+      return res.status(401).json({message:"sector id not existing"});
+    }
+    await idsector.destroy();
     return res.status(200).json({message:"data successfully deleted"});
   }
   catch(error){
     console.log(error);
     return res.status(500).json({message:"Internal server error"});
   }
- });
-
+});
 
            ///////////////////// Add Department //////////////////////
 router.post('/addDept',async(req,res)=>{
@@ -95,26 +102,40 @@ router.get('/listDept',async(req,res)=>{
   }
  });
 
-router.put('/updateDept/:id',async(req,res)=>{
-  try{
-    const id= req.params.id;
-    const value=req.body;
-    if(!id){
-      return res.status(404).json({message:"id not found"});
+ router.put('/updateDept/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const value = req.body;
+
+    // Check if id is provided and valid
+    if (!id || isNaN(id)) {
+      return res.status(400).json({ message: "Invalid or missing id" });
     }
-    await dept.update(value,{where:{id}});
-    return res.status(200).json({message:"updated successfully"});
+
+    // Check if the department exists
+    const department = await dept.findOne({ where: { id } });
+    if (!department) {
+      return res.status(404).json({ message: "Department not found" });
+    }
+
+    // Update the department data
+    await dept.update(value, { where: { id } });
+    return res.status(200).json({ message: "Updated successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error", error });
   }
-  catch(error){
-    return res.status(500).json({message:"Internal server error",error});
-  }
- });
+});
+
 
 router.delete('/deleteDept/:id',async(req,res)=>{
   try{
     const id=req.params.id;
     if(!id){
       return res.status(404).json({message:"id not found"});
+    }
+    const department = await dept.findOne({ where: { id } });
+    if(!department){
+      return res.status(404).json({message:"Department not found"});
     }
     const valueid=await dept.findOne({where:{id}});
     await valueid.destroy();
@@ -148,33 +169,43 @@ router.get('/listActs',async(req,res)=>{
   }
  });
 
-router.put('/updateActs/:id',async(req,res)=>{
+ router.put('/updateActs/:id',async(req,res)=>{
   try{
     const id=req.params.id;
     const value=req.body;
+    if(!id){
+      return res.status(404).json({message:"id not found"});
+    }
+    const idacts = await act.findOne({where:{id}});
+    if(!idacts){
+      return res.status(404).json({message:"act id not existing"});
+    }
     await act.update(value,{where:{id}});
     return res.status(200).json({message:"Updated acts"});
   }
   catch(error){
     return res.status(500).json({message:"Internal server error",error});
   }
- });
-
+});
 router.delete('/deleteActs/:id',async(req,res)=>{
   try{
     const id = req.params.id;
     if(!id){
       return res.status(404).json({message:"id not found"});
     }
-    const valueid= await act.findOne({where:{id}});
-    await valueid.destroy();
+    const actid = await act.findOne({where:{id}});
+    if(!actid){
+      return res.status(401).json({message:"id not existing"});
+    }
+    await actid.destroy();
     return res.status(200).json({message:"deleted successfully"});
   }
   catch(error){
     return res.status(500).json({message:"Internal server error",error});
   }
- });
+});
 
+    ////////////// Add Section ////////////////////////
 router.post('/createSection' , async(req,res) =>{
   try{
     const {act,section,violation_description,penalty_description,penalty_amount,penalty_point} = req.body;
@@ -214,17 +245,9 @@ router.get('/listSections/:act' , async (req,res)=>{
   try{
     const act = req.params.act;
     const sectiondata = await sections.findAll({where:{act},
-      attributes:[
-        "section",
-        "violation_description",
-      ]
     });
-
     const documentdata = await documents.findAll({where:{act},
-    attributes:[
-      "document_description",
-    ]
-  });
+    });
     return res.status(200).json({message:"List of sections",sectiondata,documentdata});
   } catch(error){
     console.error(error);
@@ -233,6 +256,7 @@ router.get('/listSections/:act' , async (req,res)=>{
  });
  
        /////////////////////// Department to Sector //////////////////////////
+       
 router.post('/addDeptSector',async(req,res)=>{
   try{
      const {dept_name,sector_name}= req.body;
@@ -257,12 +281,16 @@ router.get('/listDeptSector',async(req,res)=>{
     }
  });
 
-router.put('/updateDeptSector/:id',async(req,res)=>{
+ router.put('/updateDeptSector/:id',async(req,res)=>{
   try{
       const id = req.params.id;
       const value = req.body;
       if(!id){
         return res.status(404).json({message:"id not found"});
+      }
+      const id_dept_sec = await deptsector.findOne({where:{id}});
+      if(!id_dept_sec){
+        return res.status(401).json({message:"id not existing"});
       }
       await deptsector.update(value,{where:{id}});
       return res.status(200).json({message:"DeptSector updated successfully"});
@@ -270,8 +298,7 @@ router.put('/updateDeptSector/:id',async(req,res)=>{
     catch(error){
       return res.status(500).json({message:"Internal server error",error});
     }
- });
-
+});
 router.delete('/deleteDeptSector/:id',async(req,res)=>{
   try{
       const id = req.params.id;
@@ -279,13 +306,16 @@ router.delete('/deleteDeptSector/:id',async(req,res)=>{
         return res.status(404).json({message:"id not found"});
       }
       const valueid = await deptsector.findOne({where:{id}});
+      if(!valueid){
+        return res.status(401).json({message:"id not existing"});
+      }
       await valueid.destroy();
       return res.status(200).json({message:"deleted successfully"});
     }
     catch(error){
       return res.status(500).json({message:"Internal server error",error});
     }
- });
+});
 
       //////////////////////// Act to Departments ///////////////////////
  router.post('/addActDept',async(req,res)=>{
@@ -309,12 +339,16 @@ router.get('/listActDept',async(req,res)=>{
     }
  });
 
-router.put('/updateActDept/:id',async(req,res)=>{
+ router.put('/updateActDept/:id',async(req,res)=>{
   try{
       const id = req.params.id;
       const value = req.body;
       if(!id){
         return res.status(404).json({message:"id not found"});
+      }
+      const id_act_dept = await actdept.findOne({where:{id}});
+      if(!id_act_dept){
+        return res.status(401).json({message:"id not existing"});
       }
       await actdept.update(value,{where:{id}});
       return res.status(200).json({message:"updated successfully"});
@@ -322,8 +356,7 @@ router.put('/updateActDept/:id',async(req,res)=>{
     catch(error){
       return res.status(500).json({message:"Internal server error",error});
     }
- });
-
+});
 router.delete('/deleteActDept/:id',async(req,res)=>{
   try{
       const id = req.params.id;
@@ -331,13 +364,16 @@ router.delete('/deleteActDept/:id',async(req,res)=>{
         return res.status(404).json({message:"id not found"});
       }
       const valueid = await actdept.findOne({where:{id}});
+      if(!valueid){
+        return res.status(401).json({message:"id not existing"});
+      }
       await valueid.destroy();
       return res.status(200).json({message:"deleted successfully"});
      }
      catch(error){
       return res.status(500).json({message:"Internal server error",error});
      }
- });
+});
 
        /////////////////////// Create Roll ///////////////////////
 
