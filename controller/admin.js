@@ -362,24 +362,19 @@ router.get('/actDocuments/:act' , async(req, res) =>{
 
        /////////////////////// Department to Sector //////////////////////////
        
-router.post('/addDeptSector', async (req, res) => {
-  try {
-    console.log("enter........");
-    const deptSectorArray = req.body.deptSector; 
-
-    if (!Array.isArray(deptSectorArray) || deptSectorArray.length === 0) {
-      return res.status(400).json({ message: "deptSector must be a non-empty array" });
-    }
-
-    const createdDeptSectors = await deptsector.Create(deptSectorArray);
-    return res.status(200).json({
-      message: "DeptSector data added successfully",
-      createdDeptSectors,
-    });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error", error });
-  }
-});
+       router.post('/addDeptSector',async(req,res)=>{
+        try{
+           const {dept_name,sector_name}= req.body;
+           const deptSector = await deptsector.create({
+            dept_name,
+            sector_name
+          });
+           return res.status(200).json({message:"DeptSector data added successfully",deptSector});
+          }
+        catch(error){
+          return res.status(500).json({message:"Internal server error",error});
+        }
+       });
 
 router.get('/listDeptSector',async(req,res)=>{
   try{
