@@ -21,7 +21,8 @@ const company= sequelize.define('company',{
   migrant_labours:{type:DataTypes.STRING,defaultValue:"" },
   branch_admin:{type:DataTypes.STRING,defaultValue:"" },
   branch_admin_mobile:{type:DataTypes.STRING,defaultValue:"" },
-  branch_admin_email:{type:DataTypes.STRING,defaultValue:"" }
+  branch_admin_email:{type:DataTypes.STRING,defaultValue:"" },
+ status:{type:DataTypes.STRING,defaultValue:"" }
 },{timestamps:false});
 
 sequelize.sync({alter:true})

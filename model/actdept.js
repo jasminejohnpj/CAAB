@@ -7,17 +7,17 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 
 });
 
-const deptsector= sequelize.define('deptsector',{
-  dept_name:{type:DataTypes.JSON,defaultValue:"" },
-  sector_name:{type:DataTypes.STRING,defaultValue:"" }
+const actdept = sequelize.define('actdept',{
+  dept_name:{type:DataTypes.STRING,defaultValue:"" },
+  act_name:{type:DataTypes.STRING,defaultValue:"" }
 },{timestamps:false});
 
 sequelize.sync({alter:true})
 .then(()=>{
-  console.log('deptsector table created');
+  console.log('actdept table created');
 })
 .catch((err)=>{
   console.error('Error:',err);
 });
 
-module.exports=deptsector;
+module.exports = actdept;
