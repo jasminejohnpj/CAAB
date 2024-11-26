@@ -20,13 +20,31 @@ const actdept = require('../model/actdept');
 //const upload = multer({dest: 'uploads/'})
 //const storage = admin.storage().bucket();
 const { where } = require('sequelize');
+const { sequelize } = require('sequelize');
+const {Op} = require('sequelize');
+
+router.post('/query',async (req, res) => {
+  try {
+    console.log(req.body);
+  const results = await sequelize.query(`${req.body.query}`);
+  if(results){
+    return res.json({ response: results });
+  }
+}catch(err) {
+  return res.status(500).json({"error": err.message});
+}
+}
+);
 
            //////////////////////  Sectors  ///////////////////////
 router.post('/addSector',async(req,res)=>{
   try{
     const{sector_name}=req.body;
+    if(!sector_name || sector_name.trim === ''){
+      return res.status(400).json({message:"sector name is required"});
+    }
     await sector.create({sector_name});
-    return res.status(200).json({message:'Data added successfully'});
+    return res.status(200).json({message:'sector added successfully'});
   }
   catch(error){
     return res.status(500).json({message:"Internal server error",error});
@@ -47,6 +65,9 @@ router.put('/updateSector/:id',async(req,res)=>{
   try{
     const id = req.params.id;
     const value = req.body;
+    if(!value || value.trim === ""){
+      return res.status(400).json({message:"sector name is required"});
+    }
     if(!id){
       return res.status(404).json({message:"id not found"});
     }
@@ -86,6 +107,7 @@ router.delete('/deleteSector/:id',async(req,res)=>{
 router.post('/addDept', async (req, res) => {
   try {
     const { dept_name, sector_name } = req.body;
+    // if(!)
       if (!dept_name ) {
         return res.status(400).json({ message: "Missing department name or sector name" });
       }
