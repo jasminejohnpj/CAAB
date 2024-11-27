@@ -9,7 +9,8 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 
 const roles= sequelize.define('role',{
   role_name:{type:DataTypes.STRING,defaultValue:"" },
-  access:{type:DataTypes.JSON,defaultValue:"" }
+  access:{type:DataTypes.JSON,defaultValue:[] },
+  allowed_routes:{type:DataTypes.JSON,defaultValue:[]}
 },{timestamps:false});
 
 sequelize.sync({alter:true})

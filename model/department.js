@@ -8,9 +8,8 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 
 });
 
-const dept= sequelize.define('dept',{
-  dept_name:{type:DataTypes.STRING,defaultValue:"" },
-  sector_name:{type:DataTypes.STRING,defaultValue:"" }
+const department= sequelize.define('department',{
+  dept_name:{type:DataTypes.STRING,defaultValue:"" }
 },{timestamps:false});
 
 sequelize.sync({alter:true})
@@ -21,4 +20,4 @@ sequelize.sync({alter:true})
   console.error('Error:',err);
 });
 
-module.exports=dept;
+module.exports=department;

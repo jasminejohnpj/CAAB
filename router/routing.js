@@ -5,7 +5,7 @@ const app= express();
 app.use(cors());
 
 app.use('/admin',require('../controller/admin'));
-app.use('/comadmin',require('../controller/comAdmin'));
+app.use('/compadmin',require('../controller/compAdmin'));
 
 
 module.exports=app;
