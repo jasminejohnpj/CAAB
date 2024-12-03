@@ -9,7 +9,7 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 
 const deptsector= sequelize.define('deptsector',{
   dept_name:{type:DataTypes.JSON,defaultValue:"" },
-  sector_name:{type:DataTypes.STRING,defaultValue:"" }
+  sector_id:{type:DataTypes.STRING,defaultValue:"" }
 },{timestamps:false});
 
 sequelize.sync({alter:true})

@@ -8,16 +8,17 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 
 });
 
-const department= sequelize.define('department',{
-  dept_name:{type:DataTypes.STRING,defaultValue:"" }
+const category= sequelize.define('category',{
+    category_name:{type:DataTypes.STRING},
+   
 },{timestamps:false});
 
 sequelize.sync({alter:true})
 .then(()=>{
-  console.log('department table created');
+  console.log('Category table created');
 })
 .catch((err)=>{
   console.error('Error:',err);
 });
 
-module.exports=department;
+module.exports = category;
