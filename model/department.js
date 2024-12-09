@@ -9,7 +9,9 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 });
 
 const department= sequelize.define('department',{
-  dept_name:{type:DataTypes.STRING,defaultValue:"" }
+  department_name:{type:DataTypes.STRING,defaultValue:"" },
+  department_type:{type:DataTypes.STRING,defaultValue:"" },
+  appropriate_govt:{type:DataTypes.STRING,defaultValue:"" },
 },{timestamps:false});
 
 sequelize.sync({alter:true})
@@ -20,4 +22,4 @@ sequelize.sync({alter:true})
   console.error('Error:',err);
 });
 
-module.exports=department;
+module.exports = department;
