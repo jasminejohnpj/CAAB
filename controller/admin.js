@@ -197,10 +197,10 @@ router.delete("/deleteBusinessType/:id", async (req, res) => {
 
 router.post('/newEmployeeCategory' , async(req,res) =>{
   try{
-    const { conditions, total_no,employee_type, department_name, law ,description } = req.body;
+    const { emp_no, sex,employee_type, department_name, law ,description } = req.body;
     const newemployee = await  employee.create({
-       conditions,
-        total_no,
+        emp_no,
+        sex,
         employee_type, 
         department_name, 
         law ,

@@ -9,9 +9,9 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 });
 
 const employee= sequelize.define('employee',{
-  conditions:{type:DataTypes.STRING,defaultValue:"" },
-  total_no:{type:DataTypes.STRING,defaultValue:"" },
-  employee_type:{type:DataTypes.STRING,defaultValue:"" },
+  emp_no:{type:DataTypes.STRING,defaultValue:"" },
+  sex:{type:DataTypes.STRING,defaultValue:"" },
+  employee_type:{type:DataTypes.JSON,defaultValue:"" },
   department_name:{type:DataTypes.STRING,defaultValue:"" },
   law:{type:DataTypes.STRING,defaultValue:"" },
   description:{type:DataTypes.STRING,defaultValue:"" },
