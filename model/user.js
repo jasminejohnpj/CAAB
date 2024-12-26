@@ -9,8 +9,9 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 });
 
 const user= sequelize.define('user',{
-  cab_id:{type:DataTypes.STRING, autoIncrement:true, primaryKey:true},
+  caab_id:{type:DataTypes.STRING, primaryKey:true},
   email:{type:DataTypes.STRING,defaultValue:"" },
+  user_name:{type:DataTypes.STRING,defaultValue:""},
   company_name:{type:DataTypes.STRING,defaultValue:"" },
   mobile:{type:DataTypes.STRING,defaultValue:"" },
   no_of_branch:{type:DataTypes.STRING,defaultValue:"" },

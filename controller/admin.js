@@ -109,6 +109,7 @@ router.delete("/deleteDepartment/:id", async (req, res) => {
 router.post("/addBusinessType", async (req, res) => {
   try {
     const { business_type, department_name } = req.body;
+    //console.log( business_type, department_name)
     if (
       !business_type ||
       business_type.trim === "" ||
@@ -335,10 +336,10 @@ router.delete('/deleteLaw/:id' , async(req,res) =>{
 
 router.post('/addQuestions', async (req, res) => {
   try {
-    const { section, questionsList } = req.body;
+    const { section, questionsList  } = req.body;
 
     // Check if the required fields are present
-    if (!section || !questionsList || !Array.isArray(questionsList)) {
+    if (!section || !questionsList || !Array.isArray(questionsList) ) {
       return res
         .status(400)
         .json({ message: "Section and a valid questionsList array are required" });
@@ -369,6 +370,15 @@ router.get('/listQuestions' , async (req,res) =>{
     return res.status(500).json({ message: "Internal server error", error });
   }
 });
+
+// router.get('/businessQuestions' , async (req,res) =>{
+//   try{
+//     const { businee_type } = req.body;
+//     if(!businee_type){
+//       return res.status(401).json({message:"business type required"})
+//     }
+//   }
+// })
 
 
 
