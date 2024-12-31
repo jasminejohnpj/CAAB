@@ -15,7 +15,7 @@ const laws = sequelize.define('law',{
     penalty_amount:{type:DataTypes.INTEGER},
     due_date:{type:DataTypes.STRING},
     alert_date:{type:DataTypes.STRING},
-    gravity:{type:DataTypes.STRING}
+    
 
 },{timestamps:false});
 
