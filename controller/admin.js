@@ -46,6 +46,22 @@ router.post("/newDepartment", async (req, res) => {
   }
 });
 
+router.get('/departments' , async(req,res) =>{
+  try{
+    const departmentlist = await department.findAll({
+      attributes: ['department_name' ], 
+    });
+    const departmentNames = departmentlist.map(dept => dept.department_name);
+
+    if(!departmentlist){
+      return res.status(401).json({message:"departments not found"});
+    }
+    return res.status(200).json(departmentNames);
+  } catch(error){
+    return res.status(500).json({message:"internal server error"});
+  }
+});
+
 router.get("/listDepartment", async (req, res) => {
   try {
     const data = await department.findAll();
@@ -105,6 +121,20 @@ router.delete("/deleteDepartment/:id", async (req, res) => {
   }
 });
 
+router.get('/getDepartmentById/:id' , async(req,res) =>{
+  try{
+      const id = req.params.id;
+      if(!id){
+        return res.status(401).json({message:"id is required"});
+      }
+      const dept = await department.findOne({ where: { id } });
+      return res.status(200).json(dept)
+  } catch(error){
+    console.log(error)
+    return res.status(500).json({message:"internal server error"})
+  }
+});
+
 /////////////////////// Business Type //////////////////////////
 router.post("/addBusinessType", async (req, res) => {
   try {
@@ -126,7 +156,7 @@ router.post("/addBusinessType", async (req, res) => {
     });
     return res
       .status(200)
-      .json({ message: "Business type added successfully" });
+      .json({ message: "Business type created successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error", error });
   }
@@ -190,6 +220,27 @@ router.delete("/deleteBusinessType/:id", async (req, res) => {
     return res.status(200).json({ message: "deleted successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error", error });
+  }
+});
+
+router.get('/getBusinessTypeById/:id',async(req, res) =>{
+  try{
+    const id = req.params.id;
+    if(!id){
+      return res.status(401).json({message:"id required"});
+    }
+    const data = await businesstype.findOne({where:{id}});
+      return res.status(200).json({
+     id:data.id,
+     business_type:data.business_type,
+     department_name:data.department_name
+        })
+
+    }
+  
+    catch(error){
+      return res.status(500).json({message:"Internal server error",error});
+    
   }
 });
 
@@ -277,7 +328,7 @@ router.post('/addLaw' , async(req,res) =>{
       alert_date,
       gravity  
     });
-    return res.status(200).json({message:"law added successfully"});
+    return res.status(200).json({message:"law created successfully"});
 
   } catch(error){
     return res.status(500).json({message:"internal server error"});
@@ -371,14 +422,7 @@ router.get('/listQuestions' , async (req,res) =>{
   }
 });
 
-// router.get('/businessQuestions' , async (req,res) =>{
-//   try{
-//     const { businee_type } = req.body;
-//     if(!businee_type){
-//       return res.status(401).json({message:"business type required"})
-//     }
-//   }
-// })
+
 
 
 
@@ -391,6 +435,7 @@ router.get('/listQuestions' , async (req,res) =>{
 
 
 /////////////////////// Create Roll ///////////////////////
+
 router.post("/createRole", async (req, res) => {
   try {
     const { role_name, access, allowed_routes } = req.body;

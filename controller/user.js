@@ -5,9 +5,66 @@ const branchAdmin = require('../model/branchAdmin');
 const businesstype = require('../model/businesstype');
 const { where } = require("sequelize");
 
+
+
+
+
+
+
+const otpStore = {};
+function generateOTP() {
+    return Math.floor(1000 + Math.random() * 9000); // Generates a random number between 1000 and 9999
+}
+
+router.post('/login',async(req,res) =>{
+    try{
+        const {mobile} = req.body;
+        if(!mobile ||  !/^\d{10}$/.test(mobile)) {
+            return res.status(401).json({message:"Invalid mobile number"});
+        }
+        const existingUser = await user.findOne({mobile});
+        if(!existingUser){
+            return res.status(400).json({message:"user not found"});
+        }
+        const otp = generateOTP();
+        otpStore[mobile] = otp;
+        console.log(`Generated OTP for ${mobile}: ${otp}`); 
+        return res.status(200).json({message:"OTP sent successfully",otp});
+    }
+    catch(error){
+        return res.status(500).json({message:"Internal server error",error});
+    }
+});
+
+router.post('/verify-otp',async(req,res) =>{
+    try{
+        const {mobile,otp} = req.body;
+        if(!mobile ||  !/^\d{10}$/.test(mobile)) {
+            return res.status(401).json({message:"Invalid mobile number"});
+        }
+        if (!otp || otp.toString().length !== 4) {
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+        const storedOtp = otpStore[mobile];
+        if (!storedOtp) {
+        return res.status(400).json({ message: 'No OTP found for this mobile number' });
+        }
+
+        if (storedOtp.toString() !== otp.toString()) {
+        return res.status(400).json({ message: 'Invalid OTP' });
+        }
+
+        delete otpStore[mobile];
+        return res.status(200).json({message:"login successfull"});
+    }
+    catch(error){
+        return res.status(500).json({message:"Internal server error",error});
+    }
+});
+
 router.post('/addCompany', async (req, res) => {
     try {
-        const { email, user_name,company_name, mobile, no_of_branch } = req.body;
+        const { email, user_name,company_name, mobile, no_of_branch , employer_category , otp} = req.body;
 
         const existingUser = await User.findOne({ where: { email, company_name } });
         if (existingUser) {
@@ -27,6 +84,7 @@ router.post('/addCompany', async (req, res) => {
             newCaabId = `CAAB${(latestIdNumber + 1).toString().padStart(4, '0')}`; 
         }
 
+
         // Create a new company record
         const newUser = await User.create({
             caab_id: newCaabId,
@@ -35,6 +93,7 @@ router.post('/addCompany', async (req, res) => {
             company_name,
             mobile,
             no_of_branch,
+            employer_category
         });
 
         return res.status(201).json({ message: "Company registered successfully", data: newUser });
@@ -195,5 +254,9 @@ router.delete('/removeBranch/:admin_email', async (req, res) => {
 });
 
 
+
+
+  
+  
 
 module.exports = router;
