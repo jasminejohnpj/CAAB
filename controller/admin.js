@@ -438,16 +438,23 @@ router.get('/listQuestions' , async (req,res) =>{
   }
 });
 
-router.get('/evaluationQuestions' , async(req,res) =>{
-  try{
-    const {businee_type} = req.body;
-    const dept = await businesstype.findOne({where:{businee_type:businee_type}});
-    return res.status(200).json(dept);
-  }  catch(error){
-    console.log(error)
+router.get('/evaluationQuestions', async (req, res) => {
+  try {
+    const { businee_type ,} = req.query; 
+    console.log(businee_type);
+    if (!businee_type) {
+      return res.status(400).json({ message: 'Invalid or undefined "businee_type" parameter' });
+    }
+    const dept = await businesstype.findAll({ where: { business_type: businee_type } });
+    const departmentNames = dept.map(dept => dept.department_name);
+    const response = { departments: departmentNames };
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "Internal server error", error });
   }
 });
+
 
 
 

@@ -14,7 +14,6 @@ const user= sequelize.define('user',{
   user_name:{type:DataTypes.STRING,defaultValue:""},
   company_name:{type:DataTypes.STRING,defaultValue:"" },
   mobile:{type:DataTypes.STRING,defaultValue:"" },
-  no_of_branch:{type:DataTypes.STRING,defaultValue:"" },
  employer_category:{ type:DataTypes.STRING,defaultValue:""}
  
 },{timestamps:false});
