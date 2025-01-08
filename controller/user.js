@@ -33,7 +33,8 @@ router.post('/login',async(req,res) =>{
     }
 });
 
-router.post('/verify-otp', async (req, res) => {
+router.post('/verify-otp', async (req, res) => { 
+
     try {
         const { mobile, otp } = req.body;
 
@@ -131,39 +132,48 @@ router.get('/companyInfo/:caab_id' , async(req, res) =>{
         const noOfBranch = await branchAdmin.count({
             where: { caab_id }
           });
+          const branchData = await branchAdmin.findAll({
+            where: { caab_id },
+            attributes: ['business_type'], 
+          });
+          const businessTypes = [...new Set(branchData.map(item => item.business_type))];
+          const selectedBusinessType = businessTypes.length > 0 ? businessTypes[0] : null;
+
           const companyInfo = {
             ...company.dataValues,
-            noOfBranch
+            noOfBranch,
+            selectedBusinessType
         };
 
         return res.status(200).json({message:"company details " ,companyInfo});
     } catch(error){
-       //
-       //  console.log(error);
+      console.log(error);
         return res.status(500).json({message:"Internal server error",error});
     }
 });
 
-router.get('/departments/:business_type',async(req,res)=>{
+router.put('/editCompany/:caab_id', async(req,res) =>{
     try{
-        const businessType = req.params.business_type;
-        if(!businessType){
-            return res.status(401).json({message:"business type required"});
+        const {caab_id} = req.params;
+        const data = req.body;
+        if(!caab_id){
+            return res.status(401).json({message:"caab id is required"});
         }
-        const departments = await businesstype.findOne({where:{business_type: businessType},attributes:['department_name']});
-        if(!departments){
-            return res.status(400).json({message:"departments does not exist under the business type"});
+        const company = await User.findOne({where:{caab_id}});
+        //console.log(company)
+        if(!company){
+            return res.status(402).json({message:"company not found"});
         }
-        return res.status(200).json({message:"departments under the business type",departments});
-        }
-        catch(error){
-            return res.status(500).json({message:"Internal server error",error});
-        }
-});
+      const user = await User.update(data, {where:{caab_id}}) ;
+       return res.status(200).json({message:"company details are updated"});
+    } catch (error){
+        return res.status(500).json({message:"internal server error"});
+    }
+}) ;
 
 router.post('/addBranch',async(req,res)=>{
     try{
-        const {caab_id,branch_name,branch_email,branch_mobile_no,branch_admin_name,admin_no,admin_email, city,district,business_type,no_female,total_employees,no_contract,no_migrant} = req.body;
+        const {caab_id,branch_admin_name,admin_no,admin_email, city,businee_type,no_female,no_male,no_contract,no_migrant} = req.body;
         const branch = await branchAdmin.findOne({where:{admin_email:admin_email}});
         if(branch){
          return   res.status(401).json({message:"branch already registered"});
@@ -181,26 +191,21 @@ router.post('/addBranch',async(req,res)=>{
             newBranchId = `br${(latestIdNumber + 1).toString()}`;
             console.log(newBranchId);
         }
-       // const femaleCount = Number(no_female)|| 0;
-        //const maleCount = Number(no_male) || 0;
+        const femaleCount = Number(no_female)|| 0;
+        const maleCount = Number(no_male) || 0;
         const newBranch = await branchAdmin.create({
             caab_id,
-            branch_name,
             branch_id : newBranchId,
-            branch_email,
-            branch_mobile_no,
             branch_admin_name,
             admin_no,
             admin_email,
-            city,
-            district,
-            business_type,
-            no_female ,
-           // no_male: maleCount,
-           
-            total_employees ,
-            no_contract,
-            no_migrant
+             city,
+             businee_type,
+             no_female : femaleCount,
+             no_male: maleCount,
+             total_employees : femaleCount + maleCount,
+             no_contract,
+             no_migrant
         });
         return res.status(200).json({message:"branch added successfully"});
         }
@@ -210,23 +215,18 @@ router.post('/addBranch',async(req,res)=>{
         }
 });
 
-router.get('/branches/:caab_id' , async (req,res) =>{
+router.get('/listBranches/:caab_id' , async(req,res)=>{
     try{
         const {caab_id} = req.params;
-       // console.log(caab_id);
-        if(!caab_id){
-            return res.status(400).json({message:"company id is required"});
-        } 
-        const branches = await branchAdmin.findAll({where: { caab_id: caab_id}});
-         if(!branches){
-            return res.status(404).json({message:"No branches found"});
-         }
-         return res.status(200).json({message:"branches of company " , branches});
 
-        } catch(error){
-            console.log(error);
-            return res.status(500).json({message:"Internal server error",error});
+        if(!caab_id){
+            return res.status(401).json({message:"caab id is required"});
         }
+        const list = await branchAdmin.findAll({where:{caab_id}});
+        return res.status(200).json({message:"branches are" , list});
+    } catch(error){
+        return res.status(500).json({message:"internal server error"});
+    }
 });
 
 router.get('/branchesDetails/:branch_id' , async(req,res) =>{

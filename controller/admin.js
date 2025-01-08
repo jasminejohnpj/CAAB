@@ -2,13 +2,14 @@ const express = require("express");
 const router = express.Router();
 const department = require("../model/department");
 const businesstype = require("../model/businesstype");
-const employee = require('../model/employee');
+const employees = require('../model/employees');
 const roles = require("../model/role");
 const laws = require("../model/law");
 const Questions = require('../model/questions');
 const { where } = require("sequelize");
-const { sequelize } = require("sequelize");
-const { Op } = require("sequelize");
+const { sequelize  , Op } = require("sequelize");
+//const { Op } = require("sequelize");
+const branchAdmin = require("../model/branchAdmin");
 
 router.post("/query", async (req, res) => {
   try {
@@ -247,26 +248,29 @@ router.get('/getBusinessTypeById/:id',async(req, res) =>{
 
 router.post('/newEmployeeCategory' , async(req,res) =>{
   try{
-    const { emp_no, emp_range,employee_type, department_name, law ,description ,section} = req.body;
-    const newemployee = await  employee.create({
-        emp_no,
-        emp_range,
-        employee_type, 
-        department_name, 
-        law ,
-        description ,
-        section
-      });
-      return res.status(200).json({message:"data inserted successfully"});
-  }
-  catch(error){
-    return res.status(500).json({message:'Internal server error', error})
+    const { min, operator,max,emp_count_type, emp_category,department_name, law ,description ,section} = req.body;
+    const newEmployee = await employees.create({
+      min,
+      operator,
+      max,
+      emp_count_type,
+      emp_category,
+      department_name,
+      law,
+      description,
+      section
+    });
+
+    return res.status(200).json({ message: "Data inserted successfully", employee: newEmployee });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error', error });
   }
 });
 
 router.get('/listEmployeeCategory', async(req,res) =>{
   try{
-    const EmployeesCategory = await employee.findAll();
+    const EmployeesCategory = await employees.findAll();
     return res.status(200).json({message:"employee category list " , EmployeesCategory});
   } catch(error){
     return res.status(500).json({message:"Internal server error", error});
@@ -283,11 +287,11 @@ router.put('/updateEmployeeCategory/:id' , async(req,res) =>{
     if(!data){
       return res.status(400).json({message:"data required"});
     }
-    const existingcategory = await employee.findOne({where:{id}});
+    const existingcategory = await employees.findOne({where:{id}});
     if(!existingcategory){
       return res. status(400).json({message:"data not found"});
     }
-    const updatedEmployee = await employee.update(data,{where:{id}});
+    const updatedEmployee = await employees.update(data,{where:{id}});
     return res.status(200).json({message:"employee category updated successfully"});
   } catch(error){
     return res.status(500).json({message:'Internal server error', error})
@@ -300,7 +304,7 @@ router.delete('/deleteEmployeeCategory/:id', async(req, res)=>{
     if(!id){
       return res.status(400).json({message:'id required'});
     }
-    const existingcategory = await employee.findOne({where:{id}});
+    const existingcategory = await employees.findOne({where:{id}});
     if(!existingcategory){
       return res.status(400).json({message:"data not found"});
     }
@@ -318,7 +322,7 @@ router.get('/employeeCategoryById/:id',async(req,res) =>{
     if(!id){
       return res.status(401).json({message:"id required"});
     }
-    const employees = await employee.findAll({where:{id}});
+    const employees = await employees.findAll({where:{id}});
     if(!employees){
       return res.status(401).json({message:"employee not found"});
     }
@@ -438,32 +442,34 @@ router.get('/listQuestions' , async (req,res) =>{
   }
 });
 
-router.get('/evaluationQuestions', async (req, res) => {
+router.get('/evaluationQuestions', async (req, res) => { 
+
   try {
-    const { businee_type ,} = req.query; 
-    console.log(businee_type);
-    if (!businee_type) {
+    const { branch_id } = req.query; 
+    if (!branch_id) {
       return res.status(400).json({ message: 'Invalid or undefined "businee_type" parameter' });
     }
-    const dept = await businesstype.findAll({ where: { business_type: businee_type } });
-    const departmentNames = dept.map(dept => dept.department_name);
-    const response = { departments: departmentNames };
-    return res.status(200).json(response);
+    const dept = await branchAdmin.findAll(
+      { where:
+         { branch_id} ,
+         attributes:
+         [ 'business_type' ,
+          'no_female',
+          'total_employees',
+          'no_contract' ,
+          'no_migrant'
+        ]});
+   
+        const BusinessType = [...new Set(dept.map(item => item.business_type))];
+        const Department = await businesstype.findAll({where:{business_type:BusinessType},attributes:['department_name']})
+          
+
+        return res.status(200).json(Department);
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal server error", error });
   }
 });
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -10,7 +10,7 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 
 const branchAdmin= sequelize.define('branchAdmin',{
   caab_id:{type:DataTypes.STRING},
-  branch_name:{type:DataTypes.STRING, defaultValue:""},
+  company_name:{type:DataTypes.STRING, defaultValue:""},
   branch_id:{type:DataTypes.STRING, unique:true},
   branch_email:{type:DataTypes.STRING, defaultValue:""},
   branch_mobile_no:{type:DataTypes.STRING, defaultValue:""},
