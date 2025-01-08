@@ -261,7 +261,7 @@ router.post('/newEmployeeCategory' , async(req,res) =>{
       section
     });
 
-    return res.status(200).json({ message: "Data inserted successfully", employee: newEmployee });
+    return res.status(200).json({ message: "Data inserted successfully"});
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error', error });
@@ -473,7 +473,21 @@ router.get('/evaluationQuestions', async (req, res) => {
 
 
 
-/////////////////////// Create Roll ///////////////////////
+
+///////////////////// Create Roll ///////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 router.post("/createRole", async (req, res) => {
   try {

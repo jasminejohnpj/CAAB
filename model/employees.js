@@ -14,7 +14,7 @@ const employees= sequelize.define('employees',{
     operator:{type:DataTypes.STRING , defaultValue:""},
     max:{type:DataTypes.STRING, defaultValue:""},
     emp_count_type:{type:DataTypes.STRING , defaultValue:""},
-    emp_category :{type:DataTypes.STRING, defaultValue:""},
+    emp_category :{type:DataTypes.JSON, defaultValue:""},
     department_name:{type:DataTypes.STRING, defaultValue:""},
     law:{type:DataTypes.STRING, defaultValue:""},
     description:{type:DataTypes.STRING, defaultValue:""},
