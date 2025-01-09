@@ -299,14 +299,39 @@ router.post('/addBranch', async (req, res) => {
     }
 });
 
+router.get('/listBranches/:caab_id', async (req, res) => {
+    try {
+        const { caab_id } = req.params;
+
+        if (!caab_id) {
+            return res.status(401).json({ message: "caab id is required" });
+        }
+        const caabId = await branchAdmin.findOne({where:{caab_id}});
+        if(!caabId){
+            return res.status(401).json({message:" caab id does not exist, no branches found"});
+        }
+        const branches = await branchAdmin.findAll({ where: { caab_id } });
+        return res.status(200).json({ message: "branches are", branches });
+    } catch (error) {
+        return res.status(500).json({ message: "internal server error" });
+    }
+});
+
 router.get('/branchDetails/:branch_id', async (req, res) => {
     try {
         const { branch_id } = req.params;
-        const branch = await branchAdmin.findAll({ where: { branch_id } });
-        if (!branch) {
+        if(!branch_id){
+            return res.status(401).json({message:"branch id required"});
+        }
+        const branch = await branchAdmin.findOne({where:{branch_id}});
+        if(!branch){
+            return res.status(404).json({message:"Invalid branch id"});
+        }
+        const branchDetails = await branchAdmin.findAll({ where: { branch_id } });
+        if (!branchDetails) {
             return res.status(404).json({ message: "branch details not found" });
         }
-        return res.status(200).json({ message: "branch details are:", branch });
+        return res.status(200).json({ message: "branch details are:", branchDetails });
     }
     catch (error) {
         return res.status(500).json({ message: "internal server error" });
