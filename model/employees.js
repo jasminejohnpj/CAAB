@@ -10,9 +10,7 @@ const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.e
 
 
 const employees= sequelize.define('employees',{
-    min:{type:DataTypes.STRING , defaultValue:""},
-    operator:{type:DataTypes.STRING , defaultValue:""},
-    max:{type:DataTypes.STRING, defaultValue:""},
+    emp_range:{type:DataTypes.STRING , defaultValue:""},
     emp_count_type:{type:DataTypes.STRING , defaultValue:""},
     emp_category :{type:DataTypes.JSON, defaultValue:""},
     department_name:{type:DataTypes.STRING, defaultValue:""},

@@ -34,7 +34,6 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/verify-otp', async (req, res) => {
-
     try {
         const { mobile, otp } = req.body;
 
@@ -54,36 +53,57 @@ router.post('/verify-otp', async (req, res) => {
         if (storedOtp.toString() !== otp.toString()) {
             return res.status(400).json({ message: 'Invalid OTP' });
         }
-        console.log(mobile, otp);
+
         delete otpStore[mobile];
 
-
         const user = await User.findOne({ where: { mobile } });
+        console.log (user);
+        let existingUser = null;
 
-
-
-        const existingUser = {
-            ...user,
-            SuperAdmin: true
-        }
-
-        if (!user) {
-
-            const branch = await branchAdmin.findOne({ where: { mobile } });
-
-            const existingUser = {
-                ...branch,
-                SuperAdmin: false
+        if (user) {
+            existingUser = {
+                caab_id: user.caab_id || null, // Replace with actual column names
+                email: user.email || null,
+                user_name: user.user_name || null,
+                company_name: user.company_name || null,
+                mobile: user.mobile,
+                employer_category: user.employer_category || null,
+                roll:user.roll
+            };
+        } else {
+            const branch = await branchAdmin.findOne({ where: { branch_mobile_no: mobile } });
+            if (branch) {
+                existingUser = {
+                    caab_id: branch.caab_id || null, // Replace with actual column names
+                    branch_name: branch.branch_name || null,
+                    branch_id: branch.branch_id || null,
+                    branch_mobile_no: branch.branch_mobile_no || null,
+                    branch_admin_name: branch.branch_admin_name,
+                    admin_no: branch.admin_no || null,
+                    admin_email: branch.admin_email || null,
+                    city: branch.city || null,
+                    district: branch.district || null,
+                    business_type: branch.business_type || null,
+                    no_female: branch.no_female || null,
+                    total_employees: branch.total_employees || null,
+                    no_contract: branch.no_contract || null,
+                    no_migrant: branch.no_migrant || null,
+                    roll:branch.roll
+                };
             }
         }
+
         if (existingUser) {
             return res.status(200).json({
                 message: "Login successful",
                 activeUser: true,
-                data: existingUser
+                existingUser
             });
         } else {
-            return res.status(200).json({ message: "your account has been created", activeUser: false });
+            return res.status(200).json({
+                message: "Your account has been created",
+                activeUser: false
+            });
         }
     } catch (error) {
         console.error("Error in /verify-otp:", error);
@@ -95,23 +115,23 @@ router.post('/verify-otp', async (req, res) => {
     }
 });
 
+
 router.post('/addCompany', async (req, res) => {
 
     try {
-        const { email, user_name, company_name, mobile, employer_category } = req.body;
+        const { email, user_name, company_name, mobile, employer_category, roll } = req.body;
 
         const existingUser = await User.findOne({ where: { email, company_name } });
         if (existingUser) {
             return res.status(409).json({ message: "Company already registered" });
         }
 
-        // Fetch the latest caab_id
         const latestUser = await User.findOne({
             order: [['caab_id', 'DESC']],
         });
 
 
-        let newCaabId = "CAAB2001"; // Default for the first record
+        let newCaabId = "CAAB2001"; 
 
         if (latestUser && latestUser.caab_id) {
             const latestIdNumber = parseInt(latestUser.caab_id.slice(4), 10);
@@ -125,7 +145,8 @@ router.post('/addCompany', async (req, res) => {
             user_name,
             company_name,
             mobile,
-            employer_category
+            employer_category,
+            roll
         });
 
         return res.status(200).json({ message: "Company registered successfully", data: newUser });
@@ -176,7 +197,6 @@ router.put('/editCompany/:caab_id', async (req, res) => {
             return res.status(401).json({ message: "caab id is required" });
         }
         const company = await User.findOne({ where: { caab_id } });
-        //console.log(company)
         if (!company) {
             return res.status(402).json({ message: "company not found" });
         }
@@ -187,10 +207,55 @@ router.put('/editCompany/:caab_id', async (req, res) => {
     }
 });
 
+router.post('/verifySuperAdminOtp', async (req, res) => {
+    try {
+        const { caab_id, mobile, otp } = req.body;
+
+        if (!caab_id) {
+            return res.status(400).json({ message: "CAAB ID is required" });
+        }
+
+        if (!mobile || !/^\d{10}$/.test(mobile)) {
+            return res.status(401).json({ message: "Invalid mobile number" });
+        }
+
+        if (!otp || otp.toString().length !== 4) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        const storedOtp = otpStore[mobile];
+        if (!storedOtp) {
+            return res.status(400).json({ message: "No OTP found for this mobile number" });
+        }
+
+        if (storedOtp.toString() !== otp.toString()) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        delete otpStore[mobile];
+
+        const existingUser = await User.findOne({ where: { caab_id } });
+
+        if (!existingUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        existingUser.mobile = mobile; // Assign new value to the `mobile` field
+        await existingUser.save();   // Save changes to the database
+
+        return res.status(200).json({
+            message: "Mobile number updated successfully",
+            phone: [existingUser.mobile]
+        });
+    } catch (error) {
+        console.error("Error in /verifySuperAdminOtp:", error);
+        return res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+});
+
 router.post('/addBranch', async (req, res) => {
     try {
-        const { caab_id,branch_name,branch_email,branch_mobile_no, branch_admin_name, admin_no, admin_email, city, district,business_type, no_female,total_employees, no_contract, no_migrant } = req.body;
-        console.log(caab_id,branch_name,branch_email,branch_mobile_no, branch_admin_name, admin_no, admin_email, city, district,business_type, no_female,total_employees, no_contract, no_migrant );
+        const { caab_id, branch_name, branch_email, branch_mobile_no, branch_admin_name, admin_no, admin_email, city, district, business_type, no_female, total_employees, no_contract, no_migrant ,roll } = req.body;
         const branch = await branchAdmin.findOne({ where: { admin_email: admin_email } });
         if (branch) {
             return res.status(401).json({ message: "branch already registered" });
@@ -223,7 +288,8 @@ router.post('/addBranch', async (req, res) => {
             no_female,
             total_employees,
             no_contract,
-            no_migrant
+            no_migrant,
+            roll
         });
         return res.status(200).json({ message: "branch added successfully" });
     }
@@ -233,30 +299,12 @@ router.post('/addBranch', async (req, res) => {
     }
 });
 
-router.get('/listBranches/:caab_id', async (req, res) => {
-    try {
-        const { caab_id } = req.params;
-
-        if (!caab_id) {
-            return res.status(401).json({ message: "caab id is required" });
-        }
-        const branches = await branchAdmin.findAll({ where: { caab_id } });
-        if (!branches) {
-            return res.status(403).json({ message: "no branches found" });
-        }
-        return res.status(200).json({ message: "branches are", branches });
-    } catch (error) {
-        return res.status(500).json({ message: "internal server error" });
-    }
-});
-
-router.get('/branchesDetails/:branch_id', async (req, res) => {
+router.get('/branchDetails/:branch_id', async (req, res) => {
     try {
         const { branch_id } = req.params;
         const branch = await branchAdmin.findAll({ where: { branch_id } });
         if (!branch) {
             return res.status(404).json({ message: "branch details not found" });
-
         }
         return res.status(200).json({ message: "branch details are:", branch });
     }

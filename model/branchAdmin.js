@@ -24,7 +24,8 @@ const branchAdmin = sequelize.define('branchAdmin', {
   //no_male:{type:DataTypes.STRING,defaultValue:""},
   total_employees: { type: DataTypes.STRING, defaultValue: "" },
   no_contract: { type: DataTypes.STRING, defaultValue: "" },
-  no_migrant: { type: DataTypes.STRING, defaultValue: "" }
+  no_migrant: { type: DataTypes.STRING, defaultValue: "" },
+  roll:{type:DataTypes.STRING, defaultValue:""}
 }, { timestamps: false });
 
 sequelize.sync({ alter: false })

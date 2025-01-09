@@ -442,34 +442,34 @@ router.get('/listQuestions' , async (req,res) =>{
   }
 });
 
-router.get('/evaluationQuestions', async (req, res) => { 
+// router.get('/evaluationQuestions', async (req, res) => { 
 
-  try {
-    const { branch_id } = req.query; 
-    if (!branch_id) {
-      return res.status(400).json({ message: 'Invalid or undefined "businee_type" parameter' });
-    }
-    const dept = await branchAdmin.findAll(
-      { where:
-         { branch_id} ,
-         attributes:
-         [ 'business_type' ,
-          'no_female',
-          'total_employees',
-          'no_contract' ,
-          'no_migrant'
-        ]});
+//   try {
+//     const { branch_id } = req.query; 
+//     if (!branch_id) {
+//       return res.status(400).json({ message: 'Invalid or undefined "businee_type" parameter' });
+//     }
+//     const dept = await branchAdmin.findAll(
+//       { where:
+//          { branch_id} ,
+//          attributes:
+//          [ 'business_type' ,
+//           'no_female',
+//           'total_employees',
+//           'no_contract' ,
+//           'no_migrant'
+//         ]});
    
-        const BusinessType = [...new Set(dept.map(item => item.business_type))];
-        const Department = await businesstype.findAll({where:{business_type:BusinessType},attributes:['department_name']})
+//         const BusinessType = [...new Set(dept.map(item => item.business_type))];
+//         const Department = await businesstype.findAll({where:{business_type:BusinessType},attributes:['department_name']})
           
 
-        return res.status(200).json(Department);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "Internal server error", error });
-  }
-});
+//         return res.status(200).json(Department);
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({ message: "Internal server error", error });
+//   }
+// });
 
 
 
@@ -478,10 +478,95 @@ router.get('/evaluationQuestions', async (req, res) => {
 
 
 
+// // router.get('/evaluationQuestions', async (req, res) => { 
+//   try {
+//     const { branch_id, total_employees } = req.query;
+
+//     // Validate inputs
+//     if (!branch_id) {
+//       return res.status(400).json({ message: 'Invalid or undefined "branch_id" parameter' });
+//     }
+
+//     if (!total_employees) {
+//       return res.status(400).json({ message: 'Invalid or undefined "total_employees" parameter' });
+//     }
+
+//     // Fetch branch data
+//     const dept = await branchAdmin.findAll({
+//       where: { branch_id },
+//       attributes: [
+//         'business_type',
+//         'no_female',
+//         'total_employees',
+//         'no_contract',
+//         'no_migrant'
+//       ]
+//     });
+
+//     // Extract unique business types
+//     const BusinessType = [...new Set(dept.map(item => item.business_type))];
+
+//     // Fetch department names based on business types
+//     const Department = await businesstype.findAll({
+//       where: { business_type: BusinessType },
+//       attributes: ['department_name', 'emp_range']
+//     });
+
+//     // Filter departments based on total_employees matching emp_range
+//     const filteredDepartments = Department.filter(dept => {
+//       const [lower, upper] = dept.emp_range.split('<');
+//       const lowerBound = parseInt(lower.replace('<=', '').trim());
+//       const upperBound = parseInt(upper.trim());
+//       const totalEmployees = parseInt(total_employees);
+
+//       return totalEmployees >= lowerBound && totalEmployees < upperBound;
+//     });
+
+//     return res.status(200).json(filteredDepartments);
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Internal server error", error });
+//   }
+// });
 
 
 
+router.get('/fetchEmployeeRecord', async (req, res) => {
+  try {
+    const { total_employees } = req.query;
+    if (!total_employees) {
+      return res.status(401).json({ message: "Total employee count required" });
+    }
 
+    const totalCount = parseInt(total_employees, 10);
+
+    // Fetch all employee records from the database
+    const allEmployees = await employees.findAll();
+
+    // Filter the records based on the employee range
+    const matchedRecord = allEmployees.find((employee) => {
+      const [lowerBound, upperBound] = employees.emp_range
+        .split(/<=|<|=/)
+        .map((value) => (value.trim() ? parseInt(value, 10) : null));
+
+      return totalCount >= lowerBound && totalCount <= upperBound;
+    });
+
+    if (!matchedRecord) {
+      return res.status(400).json({
+        message: "No employee count range found for this total employee count",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Employee record corresponding to employee range:",
+      matchedRecord,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error", error });
+  }
+});
 
 
 
