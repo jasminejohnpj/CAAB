@@ -7,8 +7,7 @@ const roles = require("../model/role");
 const laws = require("../model/law");
 const Questions = require('../model/questions');
 const { where } = require("sequelize");
-const { sequelize  , Op } = require("sequelize");
-//const { Op } = require("sequelize");
+const { sequelize  , Op , fn, col} = require("sequelize");
 const branchAdmin = require("../model/branchAdmin");
 
 router.post("/query", async (req, res) => {
@@ -26,6 +25,7 @@ router.post("/query", async (req, res) => {
 
 
 ///////////////////// Departments //////////////////////
+
 router.post("/newDepartment", async (req, res) => {
   try {
     const { department_name, department_type, appropriate_govt} = req.body;
@@ -47,11 +47,13 @@ router.post("/newDepartment", async (req, res) => {
   }
 });
 
-router.get('/departments' , async(req,res) =>{
+router.get('/departments/:business_type' , async(req,res) =>{
   try{
-    const departmentlist = await department.findAll({
-      attributes: ['department_name' ], 
+    const {business_type} = req.params;
+    const departmentlist = await businesstype.findAll({
+      where: {business_type} 
     });
+//console.log(departmentlist)
     const departmentNames = departmentlist.map(dept => dept.department_name);
 
     if(!departmentlist){
@@ -59,6 +61,7 @@ router.get('/departments' , async(req,res) =>{
     }
     return res.status(200).json(departmentNames);
   } catch(error){
+console.log(error)
     return res.status(500).json({message:"internal server error"});
   }
 });
@@ -136,6 +139,7 @@ router.get('/getDepartmentById/:id' , async(req,res) =>{
 });
 
 /////////////////////// Business Type //////////////////////////
+
 router.post("/addBusinessType", async (req, res) => {
   try {
     const { business_type, department_name } = req.body;
@@ -432,7 +436,6 @@ router.post('/addQuestions', async (req, res) => {
   }
 });
 
-
 router.get('/listQuestions' , async (req,res) =>{
   try{
     const questions = await Questions.findAll();
@@ -529,28 +532,86 @@ router.get('/listQuestions' , async (req,res) =>{
 //   }
 // });
 
+// router.get('/evaluationQuestions', async (req, res) => {
+//   try {
+//     const { branch_id, total_employees, department_name,emp_category } = req.query;
+//     if (!total_employees || !branch_id) {
+//       return res.status(401).json({ message: "Total employee count and branch id required" });
+//     }
+
+//     const totalCount = parseInt(total_employees, 10);
+
+//     // Fetch all employee records from the database
+//     const allEmployees = await employees.findAll({where:{department_name, emp_category}});
+
+//     // Filter the records based on the employee range
+//     const matchedRecord = allEmployees.find((employees) => {
+//       const [lowerBound, upperBound] = employees.emp_range
+//         .split(/<=|<|=/)
+//         .map((value) => (value.trim() ? parseInt(value, 10) : null));
+
+//       return totalCount >= lowerBound && totalCount <= upperBound;
+//     });
+
+//     if (!matchedRecord) {
+//       return res.status(400).json({
+//         message: "No employee count range found for this total employee count",
+//       });
+//     }
+//     //const uniqueSessionNos = [...new Set(matchedRecord.map(item => item.section))];
+//     //console.log(matchedRecord);
+//     return res.status(200).json({
+//       message: "Employee record corresponding to employee range:",
+//       matchedRecord,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Internal server error", error });
+//   }
+// });
 
 
-router.get('/fetchEmployeeRecord', async (req, res) => {
+
+///////////////////////////// Role Based ////////////////////////////////////////
+
+
+router.get('/evaluationQuestions', async (req, res) => {
   try {
-    const { total_employees } = req.query;
-    if (!total_employees) {
-      return res.status(401).json({ message: "Total employee count required" });
+    const { branch_id, total_employees, department_name, emp_category } = req.query;
+console.log(".....",branch_id, total_employees, department_name, emp_category );
+    // Validate required query parameters
+    if (!total_employees || !branch_id) {
+      return res.status(401).json({ message: "Total employee count and branch id required" });
     }
 
     const totalCount = parseInt(total_employees, 10);
 
-    // Fetch all employee records from the database
-    const allEmployees = await employees.findAll();
+    // Step 1: Fetch and filter employee records by department and category
+    const allEmployees = await employees.findAll({
+      where: {
+        department_name,
+        [Op.and]: [
+          fn('JSON_CONTAINS', col('emp_category'), JSON.stringify([emp_category]))
+        ],
+      },
+    });
+    
+    
+    console.log("employee...", allEmployees.dataValues)
 
-    // Filter the records based on the employee range
-    const matchedRecord = allEmployees.find((employee) => {
+    if (!allEmployees.length) {
+      return res.status(404).json({ message: "No employees found for the given department and category" });
+    }
+
+    // Step 2: Filter the records based on the employee range
+    const matchedRecord = allEmployees.find((employees) => {
       const [lowerBound, upperBound] = employees.emp_range
         .split(/<=|<|=/)
         .map((value) => (value.trim() ? parseInt(value, 10) : null));
 
       return totalCount >= lowerBound && totalCount <= upperBound;
     });
+    console.log("matched......",matchedRecord.dataValues);
 
     if (!matchedRecord) {
       return res.status(400).json({
@@ -558,21 +619,33 @@ router.get('/fetchEmployeeRecord', async (req, res) => {
       });
     }
 
+    // Step 3: Extract unique session(s) from the matched record
+    const section = matchedRecord.dataValues.section
+   // const uniqueSessions = [...new Set(matchedRecord.section)];
+      console.log(section)
+    if (!section.length) {
+      return res.status(404).json({ message: "No sessions found in the matched record" });
+    }
+
+    // Step 4: Fetch questions from the database using the unique session(s)
+    const questions = await Questions.findAll({
+      where: { section}
+    });
+
+    if (!questions.length) {
+      return res.status(404).json({ message: "No questions found for the matched section(s)" });
+    }
+
+    // Return the questions
     return res.status(200).json({
-      message: "Employee record corresponding to employee range:",
-      matchedRecord,
+      message: "Questions fetched successfully",
+      questions,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error", error });
   }
 });
-
-
-
-
-
-
 
 router.post("/createRole", async (req, res) => {
   try {

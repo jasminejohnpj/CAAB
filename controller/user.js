@@ -7,10 +7,14 @@ const { where } = require("sequelize");
 const documents = require('../model/document');
 
 
+
+
 const otpStore = {};
 function generateOTP() {
-    return Math.floor(1000 + Math.random() * 9000); // Generates a random number between 1000 and 9999
+    return Math.floor(1000 + Math.random() * 9000); 
 }
+
+///////////////// login ///////////////////////////////
 
 router.post('/login', async (req, res) => {
     try {
@@ -115,6 +119,7 @@ router.post('/verify-otp', async (req, res) => {
     }
 });
 
+///////////////// Company Reg ////////////////////////////
 
 router.post('/addCompany', async (req, res) => {
 
@@ -375,6 +380,9 @@ router.delete('/removeBranch/:branch_id', async (req, res) => {
         return res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
+
+
+///////////////////////////// Document Uploading ///////////////////////////
 
 router.post('/newDocument', async (req, res) => {
     try {
