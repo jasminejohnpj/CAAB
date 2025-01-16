@@ -59,7 +59,7 @@ router.get('/departments/:business_type' , async(req,res) =>{
     if(!departmentlist){
       return res.status(401).json({message:"departments not found"});
     }
-    return res.status(200).json(departmentNames);
+    return res.status(200).json(...departmentNames);
   } catch(error){
 console.log(error)
     return res.status(500).json({message:"internal server error"});
