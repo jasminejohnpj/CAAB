@@ -73,12 +73,15 @@ router.get('/getDepartmentsByBusinessType/:business_type',async(req,res)=>{
       if(!departments){
           return res.status(400).json({message:"departments does not exist under the business type"});
       }
-      return res.status(200).json({message:"departments under the business type",departments});
+const departmentNames = departments.department_name;
+      return res.status(200).json(departmentNames);
       }
       catch(error){
+        console.log(error);
           return res.status(500).json({message:"Internal server error",error});
       }
 });
+
 
 router.get("/listDepartment", async (req, res) => {
   try {
