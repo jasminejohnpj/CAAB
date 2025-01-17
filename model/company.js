@@ -1,13 +1,8 @@
 require('dotenv').config();
 const {DataTypes,Sequelize}= require('sequelize');
-const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.env.DB_PASSWORD,{
-  dialect:process.env.DB_DIALECT,
-  host:process.env.DB_HOST,
-  logging:false
+const db = require('./db');
 
-});
-
-const company= sequelize.define('company',{
+const company= db.define('company',{
   company_name:{type:DataTypes.STRING,defaultValue:"" },
   city:{type:DataTypes.STRING,defaultValue:"" },
   district:{type:DataTypes.STRING,defaultValue:"" },
@@ -25,12 +20,6 @@ const company= sequelize.define('company',{
  status:{type:DataTypes.STRING,defaultValue:"" }
 },{timestamps:false});
 
-sequelize.sync({alter:true})
-.then(()=>{
-  console.log('Company table created');
-})
-.catch((err)=>{
-  console.error('Error:',err);
-});
+
 
 module.exports=company;

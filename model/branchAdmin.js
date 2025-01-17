@@ -1,14 +1,10 @@
 require('dotenv').config();
 const { DataTypes, Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
-  dialect: process.env.DB_DIALECT,
-  host: process.env.DB_HOST,
-  logging: false
 
-});
+const db = require('./db');
 
-const branchAdmin = sequelize.define('branchAdmin', {
+const branchAdmin = db.define('branchAdmin', {
   caab_id: { type: DataTypes.STRING },
   branch_name: { type: DataTypes.STRING, defaultValue: "" },
   branch_id: { type: DataTypes.STRING, unique: true },
@@ -28,12 +24,6 @@ const branchAdmin = sequelize.define('branchAdmin', {
   roll:{type:DataTypes.STRING, defaultValue:""}
 }, { timestamps: false });
 
-sequelize.sync({ alter: false })
-  .then(() => {
-    console.log('branch admin table created');
-  })
-  .catch((err) => {
-    console.error('Error:', err);
-  });
+
 
 module.exports = branchAdmin;

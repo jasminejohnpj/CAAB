@@ -1,13 +1,9 @@
 require('dotenv').config();
 const {DataTypes,Sequelize}= require('sequelize');
 
-const sequelize= new Sequelize(process.env.DB_NAME,process.env.DB_USER,process.env.DB_PASSWORD,{
-  dialect:process.env.DB_DIALECT,
-  host:process.env.DB_HOST,
-  logging:false
-});
+const db = require('./db');
 
-const laws = sequelize.define('law',{
+const laws = db.define('law',{
     department_name:{type:DataTypes.STRING},
     law:{type:DataTypes.STRING },
     act_rule:{type:DataTypes.STRING },
@@ -19,12 +15,6 @@ const laws = sequelize.define('law',{
 
 },{timestamps:false});
 
-sequelize.sync({alter:true})
-.then(()=>{
-  console.log('Law table created');
-})
-.catch((err)=>{
-  console.error('Error:',err);
-});
+
 
 module.exports = laws;

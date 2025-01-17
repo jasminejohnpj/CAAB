@@ -7,17 +7,21 @@ const roles = require("../model/role");
 const laws = require("../model/law");
 const Questions = require('../model/questions');
 const { where } = require("sequelize");
-const { sequelize  , Op , fn, col} = require("sequelize");
+const { Sequelize  , Op , fn, col} = require("sequelize");
 const branchAdmin = require("../model/branchAdmin");
+const db = require("../model/db");
 
 router.post("/query", async (req, res) => {
   try {
-    console.log(req.body);
-    const results = await sequelize.query(`${req.body.query}`);
+    console.log(req.body,req.body['query']);
+
+    const sql = req.body["query"]
+    const results = await db.query(`${sql}`);
     if (results) {
       return res.json({ response: results });
     }
   } catch (err) {
+    console.log(err)
     return res.status(500).json({ error: err.message });
   }
 });
