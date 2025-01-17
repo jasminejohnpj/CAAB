@@ -47,23 +47,37 @@ router.post("/newDepartment", async (req, res) => {
   }
 });
 
-router.get('/departments/:business_type' , async(req,res) =>{
+router.get('/departments' , async(req,res) =>{
   try{
-    const {business_type} = req.params;
-    const departmentlist = await businesstype.findAll({
-      where: {business_type} 
+    const departmentlist = await department.findAll({
+      attributes: ['department_name' ], 
     });
-//console.log(departmentlist)
     const departmentNames = departmentlist.map(dept => dept.department_name);
 
     if(!departmentlist){
       return res.status(401).json({message:"departments not found"});
     }
-    return res.status(200).json(...departmentNames);
+    return res.status(200).json(departmentNames);
   } catch(error){
-console.log(error)
     return res.status(500).json({message:"internal server error"});
   }
+});
+
+router.get('/getDepartmentsByBusinessType/:business_type',async(req,res)=>{
+  try{
+      const businessType = req.params.business_type;
+      if(!businessType){
+          return res.status(401).json({message:"business type required"});
+      }
+      const departments = await businesstype.findOne({where:{business_type: businessType},attributes:['department_name']});
+      if(!departments){
+          return res.status(400).json({message:"departments does not exist under the business type"});
+      }
+      return res.status(200).json({message:"departments under the business type",departments});
+      }
+      catch(error){
+          return res.status(500).json({message:"Internal server error",error});
+      }
 });
 
 router.get("/listDepartment", async (req, res) => {
@@ -578,7 +592,7 @@ router.get('/listQuestions' , async (req,res) =>{
 router.get('/evaluationQuestions', async (req, res) => {
   try {
     const { branch_id, total_employees, department_name, emp_category } = req.query;
-console.log(".....",branch_id, total_employees, department_name, emp_category );
+//console.log(".....",branch_id, total_employees, department_name, emp_category );
     // Validate required query parameters
     if (!total_employees || !branch_id) {
       return res.status(401).json({ message: "Total employee count and branch id required" });
