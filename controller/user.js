@@ -434,11 +434,11 @@ router.delete('/deleteDocument/:id', async (req, res) => {
         if (!id) {
             return res.status(401).json({ message: "id required" });
         }
-        const doc = await document.findOne({ where: { id } });
+        const doc = await documents.findOne({ where: { id } });
         if (!doc) {
             return res.status(400).json({ message: "document not found" });
         }
-        await document.destroy({ where: { id } });
+        await documents.destroy({ where: { id } });
         return res.status(200).json({ message: "document deleted successfully" });
     }
     catch (error) {

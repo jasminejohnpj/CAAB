@@ -7,13 +7,13 @@ const roles = require("../model/role");
 const laws = require("../model/law");
 const Questions = require('../model/questions');
 const { where } = require("sequelize");
-const { Sequelize  , Op , fn, col} = require("sequelize");
+const { Sequelize, Op, fn, col } = require("sequelize");
 const branchAdmin = require("../model/branchAdmin");
 const db = require("../model/db");
 
 router.post("/query", async (req, res) => {
   try {
-    console.log(req.body,req.body['query']);
+    console.log(req.body, req.body['query']);
 
     const sql = req.body["query"]
     const results = await db.query(`${sql}`);
@@ -32,7 +32,7 @@ router.post("/query", async (req, res) => {
 
 router.post("/newDepartment", async (req, res) => {
   try {
-    const { department_name, department_type, appropriate_govt} = req.body;
+    const { department_name, department_type, appropriate_govt } = req.body;
     if (!department_name || department_name.trim === "" || !department_type || department_type.trim === "" || !appropriate_govt || appropriate_govt.trim === "") {
       return res.status(400).json({ message: "Missing Field  values " });
     }
@@ -40,7 +40,7 @@ router.post("/newDepartment", async (req, res) => {
       department_name,
       department_type,
       appropriate_govt,
-      
+
     });
     return res
       .status(200)
@@ -51,39 +51,39 @@ router.post("/newDepartment", async (req, res) => {
   }
 });
 
-router.get('/departments' , async(req,res) =>{
-  try{
+router.get('/departments', async (req, res) => {
+  try {
     const departmentlist = await department.findAll({
-      attributes: ['department_name' ], 
+      attributes: ['department_name'],
     });
     const departmentNames = departmentlist.map(dept => dept.department_name);
 
-    if(!departmentlist){
-      return res.status(401).json({message:"departments not found"});
+    if (!departmentlist) {
+      return res.status(401).json({ message: "departments not found" });
     }
     return res.status(200).json(departmentNames);
-  } catch(error){
-    return res.status(500).json({message:"internal server error"});
+  } catch (error) {
+    return res.status(500).json({ message: "internal server error" });
   }
 });
 
-router.get('/getDepartmentsByBusinessType/:business_type',async(req,res)=>{
-  try{
-      const businessType = req.params.business_type;
-      if(!businessType){
-          return res.status(401).json({message:"business type required"});
-      }
-      const departments = await businesstype.findOne({where:{business_type: businessType},attributes:['department_name']});
-      if(!departments){
-          return res.status(400).json({message:"departments does not exist under the business type"});
-      }
-const departmentNames = departments.department_name;
-      return res.status(200).json(departmentNames);
-      }
-      catch(error){
-        console.log(error);
-          return res.status(500).json({message:"Internal server error",error});
-      }
+router.get('/getDepartmentsByBusinessType/:business_type', async (req, res) => {
+  try {
+    const businessType = req.params.business_type;
+    if (!businessType) {
+      return res.status(401).json({ message: "business type required" });
+    }
+    const departments = await businesstype.findOne({ where: { business_type: businessType }, attributes: ['department_name'] });
+    if (!departments) {
+      return res.status(400).json({ message: "departments does not exist under the business type" });
+    }
+    const departmentNames = departments.department_name;
+    return res.status(200).json(departmentNames);
+  }
+  catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error", error });
+  }
 });
 
 
@@ -99,16 +99,16 @@ router.get("/listDepartment", async (req, res) => {
 router.put('/updateDepartment/:id', async (req, res) => {
   try {
     const id = req.params.id;
-    const {department_type,appropriate_govt} = req.body;
+    const { department_type, appropriate_govt } = req.body;
 
     if (!id || isNaN(id)) {
       return res.status(400).json({ message: "id required" });
     }
 
-    if(!department_type || department_type.trim === "" || !appropriate_govt || appropriate_govt.trim ===""){
-      return res.status(400).json({message:"All fields are required"});
+    if (!department_type || department_type.trim === "" || !appropriate_govt || appropriate_govt.trim === "") {
+      return res.status(400).json({ message: "All fields are required" });
     }
-    
+
     const dept = await department.findOne({ where: { id } });
     if (!dept) {
       return res.status(404).json({ message: "Department not found" });
@@ -117,11 +117,12 @@ router.put('/updateDepartment/:id', async (req, res) => {
       {
         department_type,
         appropriate_govt
-      }, 
-      {where:{ id } 
-    });
+      },
+      {
+        where: { id }
+      });
     return res.status(200).json({ message: " department updated successfully" });
-  } 
+  }
   catch (error) {
     return res.status(500).json({ message: "Internal server error", error });
   }
@@ -145,17 +146,17 @@ router.delete("/deleteDepartment/:id", async (req, res) => {
   }
 });
 
-router.get('/getDepartmentById/:id' , async(req,res) =>{
-  try{
-      const id = req.params.id;
-      if(!id){
-        return res.status(401).json({message:"id is required"});
-      }
-      const dept = await department.findOne({ where: { id } });
-      return res.status(200).json(dept)
-  } catch(error){
+router.get('/getDepartmentById/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(401).json({ message: "id is required" });
+    }
+    const dept = await department.findOne({ where: { id } });
+    return res.status(200).json(dept)
+  } catch (error) {
     console.log(error)
-    return res.status(500).json({message:"internal server error"})
+    return res.status(500).json({ message: "internal server error" })
   }
 });
 
@@ -205,8 +206,8 @@ router.put("/updateBusinessType/:id", async (req, res) => {
 
     if (
       !department_name ||
-      department_name.trim === "" 
-      
+      department_name.trim === ""
+
     ) {
       return res
         .status(400)
@@ -247,33 +248,35 @@ router.delete("/deleteBusinessType/:id", async (req, res) => {
   }
 });
 
-router.get('/getBusinessTypeById/:id',async(req, res) =>{
-  try{
+router.get('/getBusinessTypeById/:id', async (req, res) => {
+  try {
     const id = req.params.id;
-    if(!id){
-      return res.status(401).json({message:"id required"});
+    if (!id) {
+      return res.status(401).json({ message: "id required" });
     }
-    const data = await businesstype.findOne({where:{id}});
-      return res.status(200).json({
-     id:data.id,
-     business_type:data.business_type,
-     department_name:data.department_name
-        })
+    const data = await businesstype.findOne({ where: { id } });
+    if(!data){
+      return res.status(403).json({message:"id not found"});
+    }
+    return res.status(200).json({
+      id: data.id,
+      business_type: data.business_type,
+      department_name: data.department_name
+    })
+  }
+  catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "Internal server error", error });
 
-    }
-  
-    catch(error){
-      return res.status(500).json({message:"Internal server error",error});
-    
   }
 });
 
 
 /////////////////////// Employee //////////////////////
 
-router.post('/newEmployeeCategory' , async(req,res) =>{
-  try{
-    const { min, operator,max,emp_count_type, emp_category,department_name, law ,description ,section} = req.body;
+router.post('/newEmployeeCategory', async (req, res) => {
+  try {
+    const { min, operator, max, emp_count_type, emp_category, department_name, law, description, section } = req.body;
     const newEmployee = await employees.create({
       min,
       operator,
@@ -286,145 +289,145 @@ router.post('/newEmployeeCategory' , async(req,res) =>{
       section
     });
 
-    return res.status(200).json({ message: "Data inserted successfully"});
+    return res.status(200).json({ message: "Data inserted successfully" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error', error });
   }
 });
 
-router.get('/listEmployeeCategory', async(req,res) =>{
-  try{
+router.get('/listEmployeeCategory', async (req, res) => {
+  try {
     const EmployeesCategory = await employees.findAll();
-    return res.status(200).json({message:"employee category list " , EmployeesCategory});
-  } catch(error){
-    return res.status(500).json({message:"Internal server error", error});
+    return res.status(200).json({ message: "employee category list ", EmployeesCategory });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error", error });
   }
 });
 
-router.put('/updateEmployeeCategory/:id' , async(req,res) =>{
-  try{
+router.put('/updateEmployeeCategory/:id', async (req, res) => {
+  try {
     const id = req.params.id;
     const data = req.body;
-    if(!id){
-      return res.status(400).json({message:"id required"});
+    if (!id) {
+      return res.status(400).json({ message: "id required" });
     }
-    if(!data){
-      return res.status(400).json({message:"data required"});
+    if (!data) {
+      return res.status(400).json({ message: "data required" });
     }
-    const existingcategory = await employees.findOne({where:{id}});
-    if(!existingcategory){
-      return res. status(400).json({message:"data not found"});
+    const existingcategory = await employees.findOne({ where: { id } });
+    if (!existingcategory) {
+      return res.status(400).json({ message: "data not found" });
     }
-    const updatedEmployee = await employees.update(data,{where:{id}});
-    return res.status(200).json({message:"employee category updated successfully"});
-  } catch(error){
-    return res.status(500).json({message:'Internal server error', error})
+    const updatedEmployee = await employees.update(data, { where: { id } });
+    return res.status(200).json({ message: "employee category updated successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error', error })
   }
 });
 
-router.delete('/deleteEmployeeCategory/:id', async(req, res)=>{
-  try{
+router.delete('/deleteEmployeeCategory/:id', async (req, res) => {
+  try {
     const id = req.params.id;
-    if(!id){
-      return res.status(400).json({message:'id required'});
+    if (!id) {
+      return res.status(400).json({ message: 'id required' });
     }
-    const existingcategory = await employees.findOne({where:{id}});
-    if(!existingcategory){
-      return res.status(400).json({message:"data not found"});
+    const existingcategory = await employees.findOne({ where: { id } });
+    if (!existingcategory) {
+      return res.status(400).json({ message: "data not found" });
     }
-     await existingcategory.destroy();
-    return res.status(200).json({message:"employee category deleted"});
-  } catch(error){
+    await existingcategory.destroy();
+    return res.status(200).json({ message: "employee category deleted" });
+  } catch (error) {
     console.log(error);
-    return res.status(500).json({message:'Internal server error', error})
+    return res.status(500).json({ message: 'Internal server error', error })
   }
 });
 
-router.get('/employeeCategoryById/:id',async(req,res) =>{
-  try{
+router.get('/employeeCategoryById/:id', async (req, res) => {
+  try {
     const id = req.params.id;
-    if(!id){
-      return res.status(401).json({message:"id required"});
+    if (!id) {
+      return res.status(401).json({ message: "id required" });
     }
-    const employees = await employees.findAll({where:{id}});
-    if(!employees){
-      return res.status(401).json({message:"employee not found"});
+    const employees = await employees.findAll({ where: { id } });
+    if (!employees) {
+      return res.status(401).json({ message: "employee not found" });
     }
-    return res.status(200).json({message:"emloyee details",employees});
-   }
-   catch(error){
-    return res.status(500).json({message:"Internal server error"});
-   }
+    return res.status(200).json({ message: "emloyee details", employees });
+  }
+  catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 //////////////////////law //////////////////////////////
 
-router.post('/addLaw' , async(req,res) =>{
-  try{
-    const {department_name , law ,act_rule ,section ,penalty_amount , due_date, alert_date,gravity} = req.body;
+router.post('/addLaw', async (req, res) => {
+  try {
+    const { department_name, law, act_rule, section, penalty_amount, due_date, alert_date, gravity } = req.body;
     const newlaw = await laws.create({
-      department_name , 
-      law ,
-      act_rule ,
-      section ,
-      penalty_amount , 
-      due_date, 
+      department_name,
+      law,
+      act_rule,
+      section,
+      penalty_amount,
+      due_date,
       alert_date,
-      gravity  
+      gravity
     });
-    return res.status(200).json({message:"law created successfully"});
+    return res.status(200).json({ message: "law created successfully" });
 
-  } catch(error){
-    return res.status(500).json({message:"internal server error"});
+  } catch (error) {
+    return res.status(500).json({ message: "internal server error" });
   }
 });
 
-router.get('/listlaws' , async(req,res) =>{
-  try{
+router.get('/listlaws', async (req, res) => {
+  try {
     const lawslist = await laws.findAll();
-    return res.status(200).json({message:"laws list ", lawslist});
-  } catch(error){
-    return res.status(500).json({message:"internal server error"});
+    return res.status(200).json({ message: "laws list ", lawslist });
+  } catch (error) {
+    return res.status(500).json({ message: "internal server error" });
   }
 });
 
-router.put('/updateLaw/:id' , async(req,res) =>{
-  try{
+router.put('/updateLaw/:id', async (req, res) => {
+  try {
     const id = req.params.id;
     const newdata = req.body;
-    if(!id){
-      return res.status(400).json({message:"id is required"});
+    if (!id) {
+      return res.status(400).json({ message: "id is required" });
     }
-    if(!newdata){
-      return res.status(400).json({message:"data required"});
+    if (!newdata) {
+      return res.status(400).json({ message: "data required" });
     }
-    const existinglaw = await laws.findOne({where:{id}});
-    if(!existinglaw){
-      return res.status(400).json({message:"laws not found"});
+    const existinglaw = await laws.findOne({ where: { id } });
+    if (!existinglaw) {
+      return res.status(400).json({ message: "laws not found" });
     }
     await existinglaw.update(newdata);
-    return res.status(200).json({message:"law deleted successfully"});
-  } catch(error){
-    return res.status(500).json({message:"internal server error", error})
+    return res.status(200).json({ message: "law updated successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "internal server error", error })
   }
 });
 
-router.delete('/deleteLaw/:id' , async(req,res) =>{
-  try{
+router.delete('/deleteLaw/:id', async (req, res) => {
+  try {
     const id = req.params.id;
-    if(!id){
-      return res.status(400).json({message:"id is required"});
+    if (!id) {
+      return res.status(400).json({ message: "id is required" });
     }
-    const existinglaw = await laws.findOne({where:{id}});
-    if(!existinglaw){
-      return res.status(400).json({message:"law is not found"});
+    const existinglaw = await laws.findOne({ where: { id } });
+    if (!existinglaw) {
+      return res.status(400).json({ message: "law is not found" });
     }
     await existinglaw.destroy();
-    return res.status(200).json({message:"law deleted successfully"});
-  } catch(error){
+    return res.status(200).json({ message: "law deleted successfully" });
+  } catch (error) {
     console.log(error);
-    return res.status(500).json({message:"internal server error", error})
+    return res.status(500).json({ message: "internal server error", error })
   }
 });
 
@@ -432,10 +435,10 @@ router.delete('/deleteLaw/:id' , async(req,res) =>{
 
 router.post('/addQuestions', async (req, res) => {
   try {
-    const { section, questionsList  } = req.body;
+    const { section, questionsList } = req.body;
 
     // Check if the required fields are present
-    if (!section || !questionsList || !Array.isArray(questionsList) ) {
+    if (!section || !questionsList || !Array.isArray(questionsList)) {
       return res
         .status(400)
         .json({ message: "Section and a valid questionsList array are required" });
@@ -457,14 +460,15 @@ router.post('/addQuestions', async (req, res) => {
   }
 });
 
-router.get('/listQuestions' , async (req,res) =>{
-  try{
+router.get('/listQuestions', async (req, res) => {
+  try {
     const questions = await Questions.findAll();
     return res.status(200).json({ message: "Questions list", questions });
-  } catch(error){
+  } catch (error) {
     return res.status(500).json({ message: "Internal server error", error });
   }
 });
+
 
 // router.get('/evaluationQuestions', async (req, res) => { 
 
@@ -483,10 +487,10 @@ router.get('/listQuestions' , async (req,res) =>{
 //           'no_contract' ,
 //           'no_migrant'
 //         ]});
-   
+
 //         const BusinessType = [...new Set(dept.map(item => item.business_type))];
 //         const Department = await businesstype.findAll({where:{business_type:BusinessType},attributes:['department_name']})
-          
+
 
 //         return res.status(200).json(Department);
 //   } catch (error) {
@@ -499,6 +503,7 @@ router.get('/listQuestions' , async (req,res) =>{
 
 
 ///////////////////// Create Roll ///////////////////////
+
 
 
 
@@ -596,77 +601,76 @@ router.get('/listQuestions' , async (req,res) =>{
 ///////////////////////////// Role Based ////////////////////////////////////////
 
 
-router.get('/evaluationQuestions', async (req, res) => {
-  try {
-    const { branch_id, total_employees, department_name, emp_category } = req.query;
-//console.log(".....",branch_id, total_employees, department_name, emp_category );
-    // Validate required query parameters
-    if (!total_employees || !branch_id) {
-      return res.status(401).json({ message: "Total employee count and branch id required" });
-    }
-
-    const totalCount = parseInt(total_employees, 10);
-
-    // Step 1: Fetch and filter employee records by department and category
-    const allEmployees = await employees.findAll({
-      where: {
-        department_name,
-        [Op.and]: [
-          fn('JSON_CONTAINS', col('emp_category'), JSON.stringify([emp_category]))
-        ],
-      },
-    });
+// router.get('/evaluationQuestions', async (req, res) => {
+//   try {
+//     const { branch_id, total_employees, department_name, emp_category } = req.query;
+//     // Validate required query parameters
+//     if (!total_employees || !branch_id) {
+//       return res.status(401).json({ message: "Total employee count and branch id required" });
+//     }
     
-    
-    console.log("employee...", allEmployees.dataValues)
+//     const totalCount = parseInt(total_employees, 10);
 
-    if (!allEmployees.length) {
-      return res.status(404).json({ message: "No employees found for the given department and category" });
-    }
+//     // Step 1: Fetch and filter employee records by department and category
+//     const allEmployees = await employees.findAll({
+//       where: {
+//         department_name,
+//         [Op.and]: [
+//           fn('JSON_CONTAINS', col('emp_category'), JSON.stringify([emp_category]))
+//         ],
+//       },
+//     });
 
-    // Step 2: Filter the records based on the employee range
-    const matchedRecord = allEmployees.find((employees) => {
-      const [lowerBound, upperBound] = employees.emp_range
-        .split(/<=|<|=/)
-        .map((value) => (value.trim() ? parseInt(value, 10) : null));
 
-      return totalCount >= lowerBound && totalCount <= upperBound;
-    });
-    console.log("matched......",matchedRecord.dataValues);
+//     console.log("employee...", allEmployees.dataValues)
 
-    if (!matchedRecord) {
-      return res.status(400).json({
-        message: "No employee count range found for this total employee count",
-      });
-    }
+//     if (!allEmployees.length) {
+//       return res.status(404).json({ message: "No employees found for the given department and category" });
+//     }
 
-    // Step 3: Extract unique session(s) from the matched record
-    const section = matchedRecord.dataValues.section
-   // const uniqueSessions = [...new Set(matchedRecord.section)];
-      console.log(section)
-    if (!section.length) {
-      return res.status(404).json({ message: "No sessions found in the matched record" });
-    }
+//     // Step 2: Filter the records based on the employee range
+//     const matchedRecord = allEmployees.find((employees) => {
+//       const [lowerBound, upperBound] = employees.emp_range
+//         .split(/<=|<|=/)
+//         .map((value) => (value.trim() ? parseInt(value, 10) : null));
 
-    // Step 4: Fetch questions from the database using the unique session(s)
-    const questions = await Questions.findAll({
-      where: { section}
-    });
+//       return totalCount >= lowerBound && totalCount <= upperBound;
+//     });
+//     console.log("matched......", matchedRecord.dataValues);
 
-    if (!questions.length) {
-      return res.status(404).json({ message: "No questions found for the matched section(s)" });
-    }
+//     if (!matchedRecord) {
+//       return res.status(400).json({
+//         message: "No employee count range found for this total employee count",
+//       });
+//     }
 
-    // Return the questions
-    return res.status(200).json({
-      message: "Questions fetched successfully",
-      questions,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error", error });
-  }
-});
+//     // Step 3: Extract unique session(s) from the matched record
+//     const section = matchedRecord.dataValues.section
+//     // const uniqueSessions = [...new Set(matchedRecord.section)];
+//     console.log(section)
+//     if (!section.length) {
+//       return res.status(404).json({ message: "No sessions found in the matched record" });
+//     }
+
+//     // Step 4: Fetch questions from the database using the unique session(s)
+//     const questions = await Questions.findAll({
+//       where: { section }
+//     });
+
+//     if (!questions.length) {
+//       return res.status(404).json({ message: "No questions found for the matched section(s)" });
+//     }
+
+//     // Return the questions
+//     return res.status(200).json({
+//       message: "Questions fetched successfully",
+//       questions,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Internal server error", error });
+//   }
+// });
 
 router.post("/createRole", async (req, res) => {
   try {
@@ -760,8 +764,119 @@ router.delete("/deleteRoleById/:id", async (req, res) => {
   }
 });
 
+router.get('/evaluationQuestions', async (req, res) => {
+  try {
+    const { branch_id, total_employees, department_name, emp_category, no_female } = req.query;
+    console.log(branch_id, total_employees, department_name, emp_category, no_female);
+    // Validate required query parameters
+    if (!total_employees || !branch_id) {
+      return res.status(401).json({ message: "Total employee count and branch id required" });
+    }
 
+    const totalCount = parseInt(total_employees, 10);
+    const femaleCount = no_female ? parseInt(no_female, 10) : null;
 
+    // Step 1: Fetch and filter employee records by department and category
+    const allEmployees = await employees.findAll({
+      where: {
+        department_name,
+        [Op.and]: [
+          fn('JSON_CONTAINS', col('emp_category'), JSON.stringify([emp_category]))
+        ],
+      },
+    });
+
+    console.log("employee...", allEmployees.map(emp => emp.dataValues));
+
+    if (!allEmployees.length) {
+      return res.status(404).json({ message: "No employees found for the given department and category" });
+    }
+
+    // Step 2: Filter the records based on the employee range
+    const matchedRecord = allEmployees.find((employee) => {
+      if (!employee.emp_range) {
+        console.error("Employee range is undefined for employee:", employee);
+        return false; // Skip this employee if emp_range is undefined
+      }
+
+      const [lowerBound, upperBound] = employee.emp_range
+        .split(/<=|<|=/)
+        .map((value) => (value.trim() ? parseInt(value, 10) : null));
+
+      return totalCount >= lowerBound && totalCount <= upperBound;
+    });
+
+    console.log("matched......", matchedRecord ? matchedRecord.dataValues : "No matched record");
+
+    if (!matchedRecord) {
+      return res.status(400).json({
+        message: "No employee count range found for this total employee count",
+      });
+    }
+
+    // Step 3: Check for female count in emp_range if no_female is provided
+    if (femaleCount !== null) {
+      if (!matchedRecord.emp_range_female) {
+        console.error("Female range is undefined for matched record:", matchedRecord);
+        return res.status(400).json({
+          message: "No female count range available in the matched record",
+        });
+      }
+
+      const [femaleLowerBound, femaleUpperBound] = matchedRecord.emp_range_female
+        .split(/<=|<|=/)
+        .map((value) => (value.trim() ? parseInt(value, 10) : null));
+
+      if (femaleCount < femaleLowerBound || femaleCount > femaleUpperBound) {
+        return res.status(400).json({
+          message: "No female count range found for this number of females",
+        });
+      }
+    }
+
+    // Step 4: Extract unique session(s) from the matched record
+    const section = matchedRecord.dataValues.section;
+
+    console.log(section);
+
+    if (!section || !section.length) {
+      return res.status(404).json({ message: "No sessions found in the matched record" });
+    }
+
+    // Step 5: Fetch questions from the database using the unique session(s)
+    const questions = await Questions.findAll({
+      where: { section }
+    });
+
+    if (!questions.length) {
+      return res.status(404).json({ message: "No questions found for the matched section(s)" });
+    }
+
+    // Return the questions
+    return res.status(200).json({
+      message: "Questions fetched successfully",
+      questions,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error", error });
+  }
+});
+
+router.get('/listSections', async (req, res) => {
+  try {
+    const list = await laws.findAll({ attributes:['section']});
+
+    if (!list) {
+      return res.status(404).json({ message: "No sections found." });
+    }
+
+    return res.status(200).json(list);
+  } catch (error) {
+    console.error("Error fetching sections:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 
 
