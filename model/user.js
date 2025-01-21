@@ -10,7 +10,7 @@ const user= db.define('user',{
   company_name:{type:DataTypes.STRING,defaultValue:"" },
   mobile:{type:DataTypes.STRING,defaultValue:"" },
   employer_category:{ type:DataTypes.STRING,defaultValue:""},
-  roll:{type:DataTypes.STRING, defaultValue:""}
+  role:{type:DataTypes.STRING, defaultValue:""}
  
 },{timestamps:false});
 

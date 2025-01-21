@@ -73,7 +73,7 @@ router.post('/verify-otp', async (req, res) => {
                 company_name: user.company_name || null,
                 mobile: user.mobile,
                 employer_category: user.employer_category || null,
-                roll:user.roll
+                role:user.role
             };
         } else {
             const branch = await branchAdmin.findOne({ where: { branch_mobile_no: mobile } });
@@ -93,7 +93,7 @@ router.post('/verify-otp', async (req, res) => {
                     total_employees: branch.total_employees || null,
                     no_contract: branch.no_contract || null,
                     no_migrant: branch.no_migrant || null,
-                    roll:branch.roll
+                    role:branch.role
                 };
             }
         }
@@ -125,7 +125,7 @@ router.post('/verify-otp', async (req, res) => {
 router.post('/addCompany', async (req, res) => {
 
     try {
-        const { email, user_name, company_name, mobile, employer_category, roll } = req.body;
+        const { email, user_name, company_name, mobile, employer_category, role } = req.body;
 
         const existingUser = await User.findOne({ where: { email, company_name } });
         if (existingUser) {
@@ -152,7 +152,7 @@ router.post('/addCompany', async (req, res) => {
             company_name,
             mobile,
             employer_category,
-            roll
+            role
         });
 
         return res.status(200).json({ message: "Company registered successfully", data: newUser });
@@ -261,7 +261,7 @@ router.post('/verifySuperAdminOtp', async (req, res) => {
 
 router.post('/addBranch', async (req, res) => {
     try {
-        const { caab_id, branch_name, branch_email, branch_mobile_no, branch_admin_name, admin_no, admin_email, city, district, business_type, no_female, total_employees, no_contract, no_migrant ,roll } = req.body;
+        const { caab_id, branch_name, branch_email, branch_mobile_no, branch_admin_name, admin_no, admin_email, city, district, business_type, no_female, total_employees, no_contract, no_migrant ,role } = req.body;
         const branch = await branchAdmin.findOne({ where: { admin_email: admin_email } });
         if (branch) {
             return res.status(401).json({ message: "branch already registered" });
@@ -295,7 +295,7 @@ router.post('/addBranch', async (req, res) => {
             total_employees,
             no_contract,
             no_migrant,
-            roll
+            role
         });
         return res.status(200).json({ message: "branch added successfully" });
     }

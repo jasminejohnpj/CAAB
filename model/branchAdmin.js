@@ -21,7 +21,7 @@ const branchAdmin = db.define('branchAdmin', {
   total_employees: { type: DataTypes.STRING, defaultValue: "" },
   no_contract: { type: DataTypes.STRING, defaultValue: "" },
   no_migrant: { type: DataTypes.STRING, defaultValue: "" },
-  roll:{type:DataTypes.STRING, defaultValue:""}
+  role:{type:DataTypes.STRING, defaultValue:""}
 }, { timestamps: false });
 
 
