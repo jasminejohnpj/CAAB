@@ -59,7 +59,7 @@ router.get('/departments', async (req, res) => {
     const departmentNames = departmentlist.map(dept => dept.department_name);
 
     if (!departmentlist) {
-      return res.status(401).json({ message: "departments not found" });
+      return res.status(204).json({ message: "departments not found" });
     }
     return res.status(200).json(departmentNames);
   } catch (error) {
@@ -75,7 +75,7 @@ router.get('/getDepartmentsByBusinessType/:business_type', async (req, res) => {
     }
     const departments = await businesstype.findOne({ where: { business_type: businessType }, attributes: ['department_name'] });
     if (!departments) {
-      return res.status(400).json({ message: "departments does not exist under the business type" });
+      return res.status(204).json({ message: "departments does not exist under the business type" });
     }
     const departmentNames = departments.department_name;
     return res.status(200).json(departmentNames);
@@ -111,7 +111,7 @@ router.put('/updateDepartment/:id', async (req, res) => {
 
     const dept = await department.findOne({ where: { id } });
     if (!dept) {
-      return res.status(404).json({ message: "Department not found" });
+      return res.status(204).json({ message: "Department not found" });
     }
     const new_data = await department.update(
       {
@@ -215,7 +215,7 @@ router.put("/updateBusinessType/:id", async (req, res) => {
     }
     const data = await businesstype.findOne({ where: { id } });
     if (!data) {
-      return res.status(401).json({ message: "Business Type not existing" });
+      return res.status(204).json({ message: "Business Type not existing" });
     }
     await businesstype.update(
       {
@@ -317,7 +317,7 @@ router.put('/updateEmployeeCategory/:id', async (req, res) => {
     }
     const existingcategory = await employees.findOne({ where: { id } });
     if (!existingcategory) {
-      return res.status(400).json({ message: "data not found" });
+      return res.status(204).json({ message: "data not found" });
     }
     const updatedEmployee = await employees.update(data, { where: { id } });
     return res.status(200).json({ message: "employee category updated successfully" });
@@ -334,7 +334,7 @@ router.delete('/deleteEmployeeCategory/:id', async (req, res) => {
     }
     const existingcategory = await employees.findOne({ where: { id } });
     if (!existingcategory) {
-      return res.status(400).json({ message: "data not found" });
+      return res.status(204).json({ message: "data not found" });
     }
     await existingcategory.destroy();
     return res.status(200).json({ message: "employee category deleted" });
@@ -352,7 +352,7 @@ router.get('/employeeCategoryById/:id', async (req, res) => {
     }
     const employees = await employees.findAll({ where: { id } });
     if (!employees) {
-      return res.status(401).json({ message: "employee not found" });
+      return res.status(204).json({ message: "employee not found" });
     }
     return res.status(200).json({ message: "emloyee details", employees });
   }
@@ -404,7 +404,7 @@ router.put('/updateLaw/:id', async (req, res) => {
     }
     const existinglaw = await laws.findOne({ where: { id } });
     if (!existinglaw) {
-      return res.status(400).json({ message: "laws not found" });
+      return res.status(204).json({ message: "laws not found" });
     }
     await existinglaw.update(newdata);
     return res.status(200).json({ message: "law updated successfully" });
@@ -421,7 +421,7 @@ router.delete('/deleteLaw/:id', async (req, res) => {
     }
     const existinglaw = await laws.findOne({ where: { id } });
     if (!existinglaw) {
-      return res.status(400).json({ message: "law is not found" });
+      return res.status(204).json({ message: "law is not found" });
     }
     await existinglaw.destroy();
     return res.status(200).json({ message: "law deleted successfully" });
@@ -477,7 +477,7 @@ router.delete('/removeQuestions/:id', async (req, res) => {
     }
     const existingQuestions = await Questions.findOne({ where: { id } });
     if (!existingQuestions) {
-      return res.status(400).json({ message: "question is not found" });
+      return res.status(204).json({ message: "question is not found" });
     }
     await existingQuestions.destroy();
     return res.status(200).json({ message: "question deleted successfully" });
@@ -697,7 +697,7 @@ router.post("/createRole", async (req, res) => {
       access,
       allowed_routes,
     });
-    console.log("START", roledata.dataValues, "END");
+    //console.log("START", roledata.dataValues, "END");
     return res
       .status(200)
       .json({ message: "Role created successfully", roledata });
@@ -724,7 +724,7 @@ router.get("/getRoleById/:id", async (req, res) => {
     }
     const role = await roles.findOne({ where: { id } });
     if (!role) {
-      return res.status(401).json({ message: "role not existing" });
+      return res.status(204).json({ message: "role not existing" });
     }
     return res.status(200).json({ message: "role listed:", role });
   } catch (error) {
@@ -753,7 +753,7 @@ router.put("/updateRole/:id", async (req, res) => {
     }
     const role = await roles.findOne({ where: { id } });
     if (!role) {
-      return res.status(401).json({ message: "role does not exist" });
+      return res.status(204).json({ message: "role does not exist" });
     }
     await roles.update({ role_name, access, allowedRoutes }, { where: { id } });
     return res.status(200).json({ message: "role updated successfully" });
@@ -771,7 +771,7 @@ router.delete("/deleteRoleById/:id", async (req, res) => {
     }
     const role = await roles.findOne({ where: { id } });
     if (!role) {
-      return res.status(401).json({ message: "Role does not exists" });
+      return res.status(204).json({ message: "Role does not exists" });
     }
     await role.destroy();
     return res.status(200).json({ message: "Role deleted successfully" });
@@ -870,7 +870,7 @@ router.get('/listSections', async (req, res) => {
     const list = await laws.findAll({ attributes:['section']});
 
     if (!list) {
-      return res.status(404).json({ message: "No sections found." });
+      return res.status(204).json({ message: "No sections found." });
     }
 
     return res.status(200).json(list);

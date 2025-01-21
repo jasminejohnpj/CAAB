@@ -10,6 +10,7 @@ const documents = require('../model/document');
 
 
 const otpStore = {};
+
 function generateOTP() {
     return Math.floor(1000 + Math.random() * 9000); 
 }
@@ -61,7 +62,7 @@ router.post('/verify-otp', async (req, res) => {
         delete otpStore[mobile];
 
         const user = await User.findOne({ where: { mobile } });
-        console.log (user);
+        //console.log (user);
         let existingUser = null;
 
         if (user) {
@@ -104,7 +105,7 @@ router.post('/verify-otp', async (req, res) => {
                 existingUser
             });
         } else {
-            return res.status(200).json({
+            return res.status(202).json({
                 message: "Your account has been created",
                 activeUser: false
             });
@@ -169,7 +170,7 @@ router.get('/companyInfo/:caab_id', async (req, res) => {
         }
         const company = await User.findOne({ where: { caab_id } });
         if (!company) {
-            return res.status(404).json({ message: "Company not found" });
+            return res.status(204).json({ message: "Company not found" });
         }
         const noOfBranch = await branchAdmin.count({
             where: { caab_id }
@@ -203,7 +204,7 @@ router.put('/editCompany/:caab_id', async (req, res) => {
         }
         const company = await User.findOne({ where: { caab_id } });
         if (!company) {
-            return res.status(402).json({ message: "company not found" });
+            return res.status(204).json({ message: "company not found" });
         }
         const user = await User.update(data, { where: { caab_id } });
         return res.status(200).json({ message: "company details are updated" });
@@ -253,7 +254,7 @@ router.post('/verifySuperAdminOtp', async (req, res) => {
             phone: [existingUser.mobile]
         });
     } catch (error) {
-        console.error("Error in /verifySuperAdminOtp:", error);
+        //console.error( error);
         return res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -330,11 +331,11 @@ router.get('/branchDetails/:branch_id', async (req, res) => {
         }
         const branch = await branchAdmin.findOne({where:{branch_id}});
         if(!branch){
-            return res.status(404).json({message:"Invalid branch id"});
+            return res.status(204).json({message:"Invalid branch id"});
         }
         const branchDetails = await branchAdmin.findAll({ where: { branch_id } });
         if (!branchDetails) {
-            return res.status(404).json({ message: "branch details not found" });
+            return res.status(204).json({ message: "branch details not found" });
         }
         return res.status(200).json({ message: "branch details are:", branchDetails });
     }
@@ -349,13 +350,13 @@ router.put('/editBranchDetails/:branch_id', async (req, res) => {
         const newdata = req.body;
         const branch = await branchAdmin.findOne({ where: { branch_id } });
         if (!branch) {
-            return res.status(404).json({ message: "Branch details not found" });
+            return res.status(204).json({ message: "Branch details not found" });
         }
         await branchAdmin.update(newdata, { where: { branch_id } });
 
         return res.status(200).json({ message: "Branch details updated successfully" });
     } catch (error) {
-        console.error("Error in /editBranchDetails:", error);
+        console.error( error);
         return res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -370,13 +371,13 @@ router.delete('/removeBranch/:branch_id', async (req, res) => {
 
         const branch = await branchAdmin.findOne({ where: { branch_id } });
         if (!branch) {
-            return res.status(404).json({ message: "Branch not found" });
+            return res.status(204).json({ message: "Branch not found" });
         }
 
         await branch.destroy();
         return res.status(200).json({ message: "Branch deleted successfully" });
     } catch (error) {
-        console.error("Error in /removeBranch:", error);
+        console.error(error);
         return res.status(500).json({ message: "Internal server error", error: error.message });
     }
 });
@@ -417,7 +418,7 @@ router.put('/editDocument/:id', async (req, res) => {
         const newdata = req.body;
         const document = await documents.findOne({ where: { id } });
         if (!document) {
-            return res.status(404).json({ message: "document not found" });
+            return res.status(204).json({ message: "document not found" });
         }
         await documents.update(newdata, { where: { id } });
 
@@ -436,7 +437,7 @@ router.delete('/deleteDocument/:id', async (req, res) => {
         }
         const doc = await documents.findOne({ where: { id } });
         if (!doc) {
-            return res.status(400).json({ message: "document not found" });
+            return res.status(204).json({ message: "document not found" });
         }
         await documents.destroy({ where: { id } });
         return res.status(200).json({ message: "document deleted successfully" });
@@ -451,11 +452,11 @@ router.get('/branchDocuments/:branch_id', async (req, res) => {
         const { branch_id } = req.params;
         const branch = await branchAdmin.findOne({ where: { branch_id } });
         if (!branch) {
-            return res.status(401).json({ message: "branch id is invalid" });
+            return res.status(204).json({ message: "branch id is invalid" });
         }
         const docs = await documents.findAll({ where: { branch_id } });
         if (!docs) {
-            return res.status(401).json({ message: "documents not found" });
+            return res.status(204).json({ message: "documents not found" });
 
         }
         return res.status(200).json({ message: "uploaded documents are", data: docs });
@@ -474,7 +475,7 @@ router.get('/documentById/:id', async (req, res) => {
         }
         const docs = await documents.findAll({ where: { id } });
         if (!docs) {
-            return res.status(401).json({ message: "invalid id" });
+            return res.status(204).json({ message: "invalid id" });
         }
         return res.status(200).json({ data: docs });
     } catch (error) {
