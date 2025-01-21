@@ -469,6 +469,23 @@ router.get('/listQuestions', async (req, res) => {
   }
 });
 
+router.delete('/removeQuestions/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ message: "id is required" });
+    }
+    const existingQuestions = await Questions.findOne({ where: { id } });
+    if (!existingQuestions) {
+      return res.status(400).json({ message: "question is not found" });
+    }
+    await existingQuestions.destroy();
+    return res.status(200).json({ message: "question deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "internal server error", error })
+  }
+});
 
 // router.get('/evaluationQuestions', async (req, res) => { 
 
@@ -768,6 +785,7 @@ router.get('/evaluationQuestions', async (req, res) => {
   try {
     const { branch_id, total_employees, department_name, emp_category, no_female } = req.query;
     console.log(branch_id, total_employees, department_name, emp_category, no_female);
+
     // Validate required query parameters
     if (!total_employees || !branch_id) {
       return res.status(401).json({ message: "Total employee count and branch id required" });
@@ -803,38 +821,22 @@ router.get('/evaluationQuestions', async (req, res) => {
         .split(/<=|<|=/)
         .map((value) => (value.trim() ? parseInt(value, 10) : null));
 
-      return totalCount >= lowerBound && totalCount <= upperBound;
+      const [femaleLowerBound, femaleUpperBound] = employee.emp_range_female
+        .split(/<=|<|=/)
+        .map((value) => (value.trim() ? parseInt(value, 10) : null));
+
+      return totalCount >= lowerBound && totalCount <= upperBound && femaleCount >= femaleLowerBound && femaleCount <= femaleUpperBound;
     });
 
     console.log("matched......", matchedRecord ? matchedRecord.dataValues : "No matched record");
 
     if (!matchedRecord) {
       return res.status(400).json({
-        message: "No employee count range found for this total employee count",
+        message: "No employee count range found for this total employee count and female count",
       });
     }
 
-    // Step 3: Check for female count in emp_range if no_female is provided
-    if (femaleCount !== null) {
-      if (!matchedRecord.emp_range_female) {
-        console.error("Female range is undefined for matched record:", matchedRecord);
-        return res.status(400).json({
-          message: "No female count range available in the matched record",
-        });
-      }
-
-      const [femaleLowerBound, femaleUpperBound] = matchedRecord.emp_range_female
-        .split(/<=|<|=/)
-        .map((value) => (value.trim() ? parseInt(value, 10) : null));
-
-      if (femaleCount < femaleLowerBound || femaleCount > femaleUpperBound) {
-        return res.status(400).json({
-          message: "No female count range found for this number of females",
-        });
-      }
-    }
-
-    // Step 4: Extract unique session(s) from the matched record
+    // Step 3: Extract unique session(s) from the matched record
     const section = matchedRecord.dataValues.section;
 
     console.log(section);
@@ -843,7 +845,7 @@ router.get('/evaluationQuestions', async (req, res) => {
       return res.status(404).json({ message: "No sessions found in the matched record" });
     }
 
-    // Step 5: Fetch questions from the database using the unique session(s)
+    // Step 4: Fetch questions from the database using the unique session(s)
     const questions = await Questions.findAll({
       where: { section }
     });
@@ -877,10 +879,6 @@ router.get('/listSections', async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
-
-
-
 
 
 module.exports = router;
