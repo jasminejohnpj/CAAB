@@ -7,7 +7,7 @@ const db = require('./db');
 const branchAdmin = db.define('branchAdmin', {
   caab_id: { type: DataTypes.STRING },
   branch_name: { type: DataTypes.STRING, defaultValue: "" },
-  branch_id: { type: DataTypes.STRING, unique: true },
+  branch_id: { type: DataTypes.STRING },
   branch_email: { type: DataTypes.STRING, defaultValue: "" },
   branch_mobile_no: { type: DataTypes.STRING, defaultValue: "" },
   branch_admin_name: { type: DataTypes.STRING, defaultValue: "" },

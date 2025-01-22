@@ -10,6 +10,10 @@ const { where } = require("sequelize");
 const { Sequelize, Op, fn, col } = require("sequelize");
 const branchAdmin = require("../model/branchAdmin");
 const db = require("../model/db");
+const User = require("../model/user");
+
+
+
 
 router.post("/query", async (req, res) => {
   try {
@@ -880,5 +884,18 @@ router.get('/listSections', async (req, res) => {
   }
 });
 
+
+router.get('/listCompanies' , async(req,res)=>{
+  try{
+    const list = await User.findAll();
+    if(!list){
+      return res.status(204).json({message:"company list is empty"});
+    }
+    return res.status(200).json(list);
+  } catch(error){
+    console.log(error);
+    return res.status(500).json({message:"ïnternal server error"});
+  }
+});
 
 module.exports = router;

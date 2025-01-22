@@ -65,7 +65,7 @@ Questions.sync({alter:true})
 
 User.sync({alter:true})
 .then(()=>{
-  console.log('department table created');
+  console.log('user table created');
 })
 .catch((err)=>{
   console.error('Error:',err);
@@ -73,7 +73,7 @@ User.sync({alter:true})
 
 branchAdmin.sync({alter:true})
 .then(()=>{
-  console.log('department table created');
+  console.log('branch Admin table created');
 })
 .catch((err)=>{
   console.error('Error:',err);
@@ -81,7 +81,7 @@ branchAdmin.sync({alter:true})
 
 documents.sync({alter:true})
 .then(()=>{
-  console.log('department table created');
+  console.log('document table created');
 })
 .catch((err)=>{
   console.error('Error:',err);
