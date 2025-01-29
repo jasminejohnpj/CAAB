@@ -11,8 +11,8 @@ const { Sequelize, Op, fn, col } = require("sequelize");
 const branchAdmin = require("../model/branchAdmin");
 const db = require("../model/db");
 const User = require("../model/user");
-
-
+const category = require("../model/category");
+const questionResponse = require("../model/response");
 
 
 router.post("/query", async (req, res) => {
@@ -29,8 +29,6 @@ router.post("/query", async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
-
-
 
 ///////////////////// Departments //////////////////////
 
@@ -90,13 +88,63 @@ router.get('/getDepartmentsByBusinessType/:business_type', async (req, res) => {
   }
 });
 
+// router.get("/listDepartment", async (req, res) => {
+//   try {
+//     const data = await department.findAll();
+//     return res.status(200).json({ message: "department list", data });
+//   } catch (error) {
+//     return res.status(500).json({ message: "internal server error", error });
+//   }
+// });
 
 router.get("/listDepartment", async (req, res) => {
   try {
-    const data = await department.findAll();
-    return res.status(200).json({ message: "department list", data });
+    const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+    const pageSize = parseInt(req.query.pageSize) || 10; // Default to 10 if not provided
+
+    // Validate page and pageSize
+    if (page <= 0 || pageSize <= 0) {
+      return res
+        .status(400)
+        .json({ message: "Page and page size must be positive integers" });
+    }
+
+    // Fetch total count of departments
+    const totalCount = await department.count();
+
+    // Calculate total number of pages
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    // Handle case where requested page exceeds total pages
+    if (page > totalPages) {
+      return res.status(200).json({
+        message: "No departments found for this page",
+        departments: [],
+        totalPages,
+        totalCount,
+      });
+    }
+
+    // Calculate offset
+    const offset = (page - 1) * pageSize;
+
+    // Fetch paginated departments
+    const allDepartments = await department.findAll({
+      order: [["id", "DESC"]], // Sort by ID in descending order
+      limit: pageSize,
+      offset: offset,
+    });
+
+    // Return response with all model fields
+    return res.status(200).json({
+      message: "Department list",
+      departments: allDepartments,
+      totalPages,
+      totalCount,
+    });
   } catch (error) {
-    return res.status(500).json({ message: "internal server error", error });
+    console.error("Error fetching department list:", error);
+    return res.status(500).json({ message: "Internal server error", error });
   }
 });
 
@@ -193,8 +241,38 @@ router.post("/addBusinessType", async (req, res) => {
 
 router.get("/listBusinessType", async (req, res) => {
   try {
-    const data = await businesstype.findAll();
-    return res.status(200).json({ message: "List of businesstype", data });
+    const page = parseInt(req.query.page) || 1; 
+    const pageSize = parseInt(req.query.pageSize) || 10; 
+
+    if (page <= 0 || pageSize <= 0) {
+      return res
+        .status(400)
+        .json({ message: "Page and page size must be positive integers" });
+    }
+
+    const totalCount = await businesstype.count();
+
+    const totalPages = Math.ceil(totalCount / pageSize);
+    if (page > totalPages) {
+      return res.status(200).json({
+        message: "No businessType found for this page",
+        businessType: [],
+        totalPages,
+        totalCount,
+      });
+    }
+
+    const offset = (page - 1) * pageSize;
+    const allBusinessType = await businesstype.findAll({
+      order: [["id", "DESC"]], 
+      limit: pageSize,
+      offset: offset,
+    });
+    return res.status(200).json({ message: "List of businesstype", 
+      businessType:allBusinessType,
+       totalPages,
+      totalCount,
+     });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error", error });
   }
@@ -275,95 +353,95 @@ router.get('/getBusinessTypeById/:id', async (req, res) => {
   }
 });
 
+// /////////////////////// Employee //////////////////////
 
-/////////////////////// Employee //////////////////////
+// router.post('/newEmployeeCategory', async (req, res) => {
+//   try {
+//     const { min, operator, max, emp_count_type, emp_category, department_name, law, description, section } = req.body;
+//     const newEmployee = await employees.create({
+//       min,
+//       operator,
+//       max,
+//       emp_count_type,
+//       emp_category,
+//       department_name,
+//       law,
+//       description,
+//       section
+//     });
 
-router.post('/newEmployeeCategory', async (req, res) => {
-  try {
-    const { min, operator, max, emp_count_type, emp_category, department_name, law, description, section } = req.body;
-    const newEmployee = await employees.create({
-      min,
-      operator,
-      max,
-      emp_count_type,
-      emp_category,
-      department_name,
-      law,
-      description,
-      section
-    });
+//     return res.status(200).json({ message: "Data inserted successfully" });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: 'Internal server error', error });
+//   }
+// });
 
-    return res.status(200).json({ message: "Data inserted successfully" });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Internal server error', error });
-  }
-});
+// router.get('/listEmployeeCategory', async (req, res) => {
+//   try {
+//     const EmployeesCategory = await employees.findAll();
+//     return res.status(200).json({ message: "employee category list ", EmployeesCategory });
+//   } catch (error) {
+//     return res.status(500).json({ message: "Internal server error", error });
+//   }
+// });
 
-router.get('/listEmployeeCategory', async (req, res) => {
-  try {
-    const EmployeesCategory = await employees.findAll();
-    return res.status(200).json({ message: "employee category list ", EmployeesCategory });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error", error });
-  }
-});
+// router.put('/updateEmployeeCategory/:id', async (req, res) => {
+//   try {
+//     const id = req.params.id;
+//     const data = req.body;
+//     if (!id) {
+//       return res.status(400).json({ message: "id required" });
+//     }
+//     if (!data) {
+//       return res.status(400).json({ message: "data required" });
+//     }
+//     const existingcategory = await employees.findOne({ where: { id } });
+//     if (!existingcategory) {
+//       return res.status(204).json({ message: "data not found" });
+//     }
+//     const updatedEmployee = await employees.update(data, { where: { id } });
+//     return res.status(200).json({ message: "employee category updated successfully" });
+//   } catch (error) {
+//     return res.status(500).json({ message: 'Internal server error', error })
+//   }
+// });
 
-router.put('/updateEmployeeCategory/:id', async (req, res) => {
-  try {
-    const id = req.params.id;
-    const data = req.body;
-    if (!id) {
-      return res.status(400).json({ message: "id required" });
-    }
-    if (!data) {
-      return res.status(400).json({ message: "data required" });
-    }
-    const existingcategory = await employees.findOne({ where: { id } });
-    if (!existingcategory) {
-      return res.status(204).json({ message: "data not found" });
-    }
-    const updatedEmployee = await employees.update(data, { where: { id } });
-    return res.status(200).json({ message: "employee category updated successfully" });
-  } catch (error) {
-    return res.status(500).json({ message: 'Internal server error', error })
-  }
-});
+// router.delete('/deleteEmployeeCategory/:id', async (req, res) => {
+//   try {
+//     const id = req.params.id;
+//     if (!id) {
+//       return res.status(400).json({ message: 'id required' });
+//     }
+//     const existingcategory = await employees.findOne({ where: { id } });
+//     if (!existingcategory) {
+//       return res.status(204).json({ message: "data not found" });
+//     }
+//     await existingcategory.destroy();
+//     return res.status(200).json({ message: "employee category deleted" });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({ message: 'Internal server error', error })
+//   }
+// });
 
-router.delete('/deleteEmployeeCategory/:id', async (req, res) => {
-  try {
-    const id = req.params.id;
-    if (!id) {
-      return res.status(400).json({ message: 'id required' });
-    }
-    const existingcategory = await employees.findOne({ where: { id } });
-    if (!existingcategory) {
-      return res.status(204).json({ message: "data not found" });
-    }
-    await existingcategory.destroy();
-    return res.status(200).json({ message: "employee category deleted" });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: 'Internal server error', error })
-  }
-});
+// router.get('/employeeCategoryById/:id', async (req, res) => {
+//   try {
+//     const id = req.params.id;
+//     if (!id) {
+//       return res.status(401).json({ message: "id required" });
+//     }
+//     const employees = await employees.findAll({ where: { id } });
+//     if (!employees) {
+//       return res.status(204).json({ message: "employee not found" });
+//     }
+//     return res.status(200).json({ message: "emloyee details", employees });
+//   }
+//   catch (error) {
+//     return res.status(500).json({ message: "Internal server error" });
+//   }
+// });
 
-router.get('/employeeCategoryById/:id', async (req, res) => {
-  try {
-    const id = req.params.id;
-    if (!id) {
-      return res.status(401).json({ message: "id required" });
-    }
-    const employees = await employees.findAll({ where: { id } });
-    if (!employees) {
-      return res.status(204).json({ message: "employee not found" });
-    }
-    return res.status(200).json({ message: "emloyee details", employees });
-  }
-  catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
-  }
-});
 
 //////////////////////law //////////////////////////////
 
@@ -389,8 +467,37 @@ router.post('/addLaw', async (req, res) => {
 
 router.get('/listlaws', async (req, res) => {
   try {
-    const lawslist = await laws.findAll();
-    return res.status(200).json({ message: "laws list ", lawslist });
+    const page = parseInt(req.query.page) || 1; 
+    const pageSize = parseInt(req.query.pageSize) || 10; 
+
+    if (page <= 0 || pageSize <= 0) {
+      return res
+        .status(400)
+        .json({ message: "Page and page size must be positive integers" });
+    }
+
+    const totalCount = await laws.count();
+
+    const totalPages = Math.ceil(totalCount / pageSize);
+    if (page > totalPages) {
+      return res.status(200).json({
+        message: "No laws found for this page",
+        law: [],
+        totalPages,
+        totalCount,
+      });
+    }
+    const offset = (page - 1) * pageSize;
+
+    const allLaws = await laws.findAll({
+      order: [["id", "DESC"]], 
+      offset: offset,
+    });
+    return res.status(200).json({ message: "laws list ", 
+      law:allLaws,
+      totalPages,
+      totalCount,
+     });
   } catch (error) {
     return res.status(500).json({ message: "internal server error" });
   }
@@ -466,8 +573,38 @@ router.post('/addQuestions', async (req, res) => {
 
 router.get('/listQuestions', async (req, res) => {
   try {
-    const questions = await Questions.findAll();
-    return res.status(200).json({ message: "Questions list", questions });
+    const page = parseInt(req.query.page) || 1; 
+    const pageSize = parseInt(req.query.pageSize) || 10; 
+
+    if (page <= 0 || pageSize <= 0) {
+      return res
+        .status(400)
+        .json({ message: "Page and page size must be positive integers" });
+    }
+
+    const totalCount = await Questions.count();
+
+    const totalPages = Math.ceil(totalCount / pageSize);
+    if (page > totalPages) {
+      return res.status(200).json({
+        message: "No businessType found for this page",
+        questions: [],
+        totalPages,
+        totalCount,
+      });
+    }
+
+    const offset = (page - 1) * pageSize;
+    const allQuestions = await Questions.findAll({
+      order: [["id", "DESC"]], 
+      limit: pageSize,
+      offset: offset,
+    });
+    return res.status(200).json({ message: "Questions list", 
+      questions:allQuestions,
+      totalPages,
+      totalCount,
+     });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error", error });
   }
@@ -491,207 +628,96 @@ router.delete('/removeQuestions/:id', async (req, res) => {
   }
 });
 
-// router.get('/evaluationQuestions', async (req, res) => { 
+router.get('/evaluationQuestions', async (req, res) => {
+  try {
+    const { branch_id } = req.query;
+    const page = parseInt(req.query.page) || 1; 
+    const pageSize = parseInt(req.query.pageSize) || 10; 
 
-//   try {
-//     const { branch_id } = req.query; 
-//     if (!branch_id) {
-//       return res.status(400).json({ message: 'Invalid or undefined "businee_type" parameter' });
-//     }
-//     const dept = await branchAdmin.findAll(
-//       { where:
-//          { branch_id} ,
-//          attributes:
-//          [ 'business_type' ,
-//           'no_female',
-//           'total_employees',
-//           'no_contract' ,
-//           'no_migrant'
-//         ]});
+    if (page <= 0 || pageSize <= 0) {
+      return res.status(400).json({ message: "Page and page size must be positive integers" });
+    }
 
-//         const BusinessType = [...new Set(dept.map(item => item.business_type))];
-//         const Department = await businesstype.findAll({where:{business_type:BusinessType},attributes:['department_name']})
+    if (!branch_id) {
+      return res.status(400).json({ message: 'Invalid or undefined "branch_id" parameter' });
+    }
 
+    // Fetch business type for the given branch_id
+    const businessType = await branchAdmin.findAll({
+      where: { branch_id },
+      attributes: ['business_type']
+    });
 
-//         return res.status(200).json(Department);
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500).json({ message: "Internal server error", error });
-//   }
-// });
+    if (!businessType || businessType.length === 0) {
+      return res.status(404).json({ message: 'No business type found for the given branch_id' });
+    }
 
+    const { business_type } = businessType[0].dataValues;
 
+    // Fetch departments related to the business type
+    const departments = await businesstype.findAll({
+      where: { business_type },
+      attributes: ['department_name']
+    });
 
+    if (!departments || departments.length === 0) {
+      return res.status(404).json({ message: 'No departments found for the given business type' });
+    }
 
-///////////////////// Create Roll ///////////////////////
+    const departmentNames = departments.map(dept => dept.department_name);
 
+    // Fetch related laws for the department names
+    const sections = await laws.findAll({
+      where: {
+        department_name: {
+          [Op.in]: departmentNames,
+        }
+      },
+      attributes: ['section'] 
+    });
 
+    if (!sections || sections.length === 0) {
+      return res.status(404).json({ message: 'No related laws found for the given departments' });
+    }
 
+    const section = sections.map(law => law.section);
 
-// // router.get('/evaluationQuestions', async (req, res) => { 
-//   try {
-//     const { branch_id, total_employees } = req.query;
+    // Pagination setup
+    const offset = (page - 1) * pageSize;
 
-//     // Validate inputs
-//     if (!branch_id) {
-//       return res.status(400).json({ message: 'Invalid or undefined "branch_id" parameter' });
-//     }
+    // Fetch paginated questions
+    const allQuestions = await Questions.findAll({
+      where: { section },
+      order: [["id", "DESC"]], 
+      limit: pageSize,
+      offset: offset,
+    });
 
-//     if (!total_employees) {
-//       return res.status(400).json({ message: 'Invalid or undefined "total_employees" parameter' });
-//     }
+    const totalCount = await Questions.count({ where: { section } }); // Correcting count usage
+    const totalPages = Math.ceil(totalCount / pageSize);
 
-//     // Fetch branch data
-//     const dept = await branchAdmin.findAll({
-//       where: { branch_id },
-//       attributes: [
-//         'business_type',
-//         'no_female',
-//         'total_employees',
-//         'no_contract',
-//         'no_migrant'
-//       ]
-//     });
+    if (page > totalPages) {
+      return res.status(200).json({
+        message: "No questions found for this page",
+        questions: [],
+        totalPages,
+        totalCount,
+      });
+    }
 
-//     // Extract unique business types
-//     const BusinessType = [...new Set(dept.map(item => item.business_type))];
+    // Return the list of questions and pagination info
+    return res.status(200).json({
+      message: "List of questions",
+      questions: allQuestions,  // Changed from 'businessType' to 'questions'
+      totalPages,
+      totalCount,
+    });
 
-//     // Fetch department names based on business types
-//     const Department = await businesstype.findAll({
-//       where: { business_type: BusinessType },
-//       attributes: ['department_name', 'emp_range']
-//     });
-
-//     // Filter departments based on total_employees matching emp_range
-//     const filteredDepartments = Department.filter(dept => {
-//       const [lower, upper] = dept.emp_range.split('<');
-//       const lowerBound = parseInt(lower.replace('<=', '').trim());
-//       const upperBound = parseInt(upper.trim());
-//       const totalEmployees = parseInt(total_employees);
-
-//       return totalEmployees >= lowerBound && totalEmployees < upperBound;
-//     });
-
-//     return res.status(200).json(filteredDepartments);
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: "Internal server error", error });
-//   }
-// });
-
-// router.get('/evaluationQuestions', async (req, res) => {
-//   try {
-//     const { branch_id, total_employees, department_name,emp_category } = req.query;
-//     if (!total_employees || !branch_id) {
-//       return res.status(401).json({ message: "Total employee count and branch id required" });
-//     }
-
-//     const totalCount = parseInt(total_employees, 10);
-
-//     // Fetch all employee records from the database
-//     const allEmployees = await employees.findAll({where:{department_name, emp_category}});
-
-//     // Filter the records based on the employee range
-//     const matchedRecord = allEmployees.find((employees) => {
-//       const [lowerBound, upperBound] = employees.emp_range
-//         .split(/<=|<|=/)
-//         .map((value) => (value.trim() ? parseInt(value, 10) : null));
-
-//       return totalCount >= lowerBound && totalCount <= upperBound;
-//     });
-
-//     if (!matchedRecord) {
-//       return res.status(400).json({
-//         message: "No employee count range found for this total employee count",
-//       });
-//     }
-//     //const uniqueSessionNos = [...new Set(matchedRecord.map(item => item.section))];
-//     //console.log(matchedRecord);
-//     return res.status(200).json({
-//       message: "Employee record corresponding to employee range:",
-//       matchedRecord,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: "Internal server error", error });
-//   }
-// });
-
-
-
-///////////////////////////// Role Based ////////////////////////////////////////
-
-
-// router.get('/evaluationQuestions', async (req, res) => {
-//   try {
-//     const { branch_id, total_employees, department_name, emp_category } = req.query;
-//     // Validate required query parameters
-//     if (!total_employees || !branch_id) {
-//       return res.status(401).json({ message: "Total employee count and branch id required" });
-//     }
-    
-//     const totalCount = parseInt(total_employees, 10);
-
-//     // Step 1: Fetch and filter employee records by department and category
-//     const allEmployees = await employees.findAll({
-//       where: {
-//         department_name,
-//         [Op.and]: [
-//           fn('JSON_CONTAINS', col('emp_category'), JSON.stringify([emp_category]))
-//         ],
-//       },
-//     });
-
-
-//     console.log("employee...", allEmployees.dataValues)
-
-//     if (!allEmployees.length) {
-//       return res.status(404).json({ message: "No employees found for the given department and category" });
-//     }
-
-//     // Step 2: Filter the records based on the employee range
-//     const matchedRecord = allEmployees.find((employees) => {
-//       const [lowerBound, upperBound] = employees.emp_range
-//         .split(/<=|<|=/)
-//         .map((value) => (value.trim() ? parseInt(value, 10) : null));
-
-//       return totalCount >= lowerBound && totalCount <= upperBound;
-//     });
-//     console.log("matched......", matchedRecord.dataValues);
-
-//     if (!matchedRecord) {
-//       return res.status(400).json({
-//         message: "No employee count range found for this total employee count",
-//       });
-//     }
-
-//     // Step 3: Extract unique session(s) from the matched record
-//     const section = matchedRecord.dataValues.section
-//     // const uniqueSessions = [...new Set(matchedRecord.section)];
-//     console.log(section)
-//     if (!section.length) {
-//       return res.status(404).json({ message: "No sessions found in the matched record" });
-//     }
-
-//     // Step 4: Fetch questions from the database using the unique session(s)
-//     const questions = await Questions.findAll({
-//       where: { section }
-//     });
-
-//     if (!questions.length) {
-//       return res.status(404).json({ message: "No questions found for the matched section(s)" });
-//     }
-
-//     // Return the questions
-//     return res.status(200).json({
-//       message: "Questions fetched successfully",
-//       questions,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: "Internal server error", error });
-//   }
-// });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error', error });
+  }
+});
 
 router.post("/createRole", async (req, res) => {
   try {
@@ -785,89 +811,7 @@ router.delete("/deleteRoleById/:id", async (req, res) => {
   }
 });
 
-router.get('/evaluationQuestions', async (req, res) => {
-  try {
-    const { branch_id, total_employees, department_name, emp_category, no_female } = req.query;
-    console.log(branch_id, total_employees, department_name, emp_category, no_female);
-
-    // Validate required query parameters
-    if (!total_employees || !branch_id) {
-      return res.status(401).json({ message: "Total employee count and branch id required" });
-    }
-
-    const totalCount = parseInt(total_employees, 10);
-    const femaleCount = no_female ? parseInt(no_female, 10) : null;
-
-    // Step 1: Fetch and filter employee records by department and category
-    const allEmployees = await employees.findAll({
-      where: {
-        department_name,
-        [Op.and]: [
-          fn('JSON_CONTAINS', col('emp_category'), JSON.stringify([emp_category]))
-        ],
-      },
-    });
-
-    console.log("employee...", allEmployees.map(emp => emp.dataValues));
-
-    if (!allEmployees.length) {
-      return res.status(404).json({ message: "No employees found for the given department and category" });
-    }
-
-    // Step 2: Filter the records based on the employee range
-    const matchedRecord = allEmployees.find((employee) => {
-      if (!employee.emp_range) {
-        console.error("Employee range is undefined for employee:", employee);
-        return false; // Skip this employee if emp_range is undefined
-      }
-
-      const [lowerBound, upperBound] = employee.emp_range
-        .split(/<=|<|=/)
-        .map((value) => (value.trim() ? parseInt(value, 10) : null));
-
-      const [femaleLowerBound, femaleUpperBound] = employee.emp_range_female
-        .split(/<=|<|=/)
-        .map((value) => (value.trim() ? parseInt(value, 10) : null));
-
-      return totalCount >= lowerBound && totalCount <= upperBound && femaleCount >= femaleLowerBound && femaleCount <= femaleUpperBound;
-    });
-
-    console.log("matched......", matchedRecord ? matchedRecord.dataValues : "No matched record");
-
-    if (!matchedRecord) {
-      return res.status(400).json({
-        message: "No employee count range found for this total employee count and female count",
-      });
-    }
-
-    // Step 3: Extract unique session(s) from the matched record
-    const section = matchedRecord.dataValues.section;
-
-    console.log(section);
-
-    if (!section || !section.length) {
-      return res.status(404).json({ message: "No sessions found in the matched record" });
-    }
-
-    // Step 4: Fetch questions from the database using the unique session(s)
-    const questions = await Questions.findAll({
-      where: { section }
-    });
-
-    if (!questions.length) {
-      return res.status(404).json({ message: "No questions found for the matched section(s)" });
-    }
-
-    // Return the questions
-    return res.status(200).json({
-      message: "Questions fetched successfully",
-      questions,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error", error });
-  }
-});
+//////////////// caab admin //////////////////
 
 router.get('/listSections', async (req, res) => {
   try {
@@ -884,18 +828,100 @@ router.get('/listSections', async (req, res) => {
   }
 });
 
+router.get('/listCompanies', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1; 
+    const pageSize = parseInt(req.query.pageSize) || 10; 
 
-router.get('/listCompanies' , async(req,res)=>{
-  try{
-    const list = await User.findAll();
-    if(!list){
-      return res.status(204).json({message:"company list is empty"});
+    if (page <= 0 || pageSize <= 0) {
+      return res.status(400).json({ message: "Page and page size must be positive integers" });
     }
-    return res.status(200).json(list);
-  } catch(error){
+
+    // Fetch the total count of companies
+    const totalCount = await User.count(); // Assuming User is the model for companies, adjust if necessary
+
+    const totalPages = Math.ceil(totalCount / pageSize);
+    if (page > totalPages) {
+      return res.status(200).json({
+        message: "No companies found for this page",
+        companies: [],
+        totalPages,
+        totalCount,
+      });
+    }
+
+    const offset = (page - 1) * pageSize;
+
+    // Fetch the paginated list of companies
+    const companyList = await User.findAll({
+      order: [["id", "DESC"]],
+      offset: offset,
+      limit: pageSize, // Added limit to restrict the number of results
+    });
+
+    // Check if the companyList is empty
+    if (!companyList || companyList.length === 0) {
+      return res.status(204).json({ message: "Company list is empty" });
+    }
+
+    // Return the list of companies along with pagination info
+    return res.status(200).json({
+      message: "List of companies",
+      companies: companyList,
+      totalCount,
+      totalPages,
+    });
+
+  } catch (error) {
     console.log(error);
-    return res.status(500).json({message:"ïnternal server error"});
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
+
+router.post('/evaluationResponse', async (req, res) => {
+  try {
+    const { inputdata } = req.body; // Extract `inputdata` from request body
+
+    // Check if `inputdata` is provided and is an array
+    if (!inputdata || !Array.isArray(inputdata) || inputdata.length === 0) {
+      return res.status(400).json({ message: "Input data must be a non-empty array" });
+    }
+
+    // Extract `branch_id` from the first object to validate the branch
+    const branch_id = inputdata[0].branch_id;
+
+    if (!branch_id) {
+      return res.status(400).json({ message: "Branch ID is required" });
+    }
+
+    // Check if the branch exists
+    const branch = await branchAdmin.findOne({
+      where: { branch_id },
+    });
+
+    if (!branch) {
+      return res.status(404).json({ message: "Branch not found" });
+    }
+
+    // Use `bulkCreate` to insert multiple responses
+    const newResponses = await questionResponse.bulkCreate(
+      inputdata.map((data) => ({
+        branch_id: data.branch_id,
+        section: data.section,
+        questions: data.questions,
+        gravity: data.gravity,
+        response: data.response,
+      }))
+    );
+
+    return res.status(200).json({
+      message: "Responses added successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error", error });
+  }
+});
+
 
 module.exports = router;

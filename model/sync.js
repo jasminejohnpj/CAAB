@@ -7,8 +7,8 @@ const Questions = require('../model/questions')
 const User = require('../model/user')
 const branchAdmin = require('../model/branchAdmin')
 const documents = require('../model/document')
-
-
+const category = require('../model/category')
+const questionResponse = require('../model/response')
 department.sync({alter:true})
 .then(()=>{
   console.log('department table created');
@@ -82,6 +82,22 @@ branchAdmin.sync({alter:true})
 documents.sync({alter:true})
 .then(()=>{
   console.log('document table created');
+})
+.catch((err)=>{
+  console.error('Error:',err);
+});
+
+category.sync({alter:true})
+.then(()=>{
+  console.log('category table created');
+})
+.catch((err)=>{
+  console.error('Error:',err);
+});
+
+questionResponse.sync({alter:true})
+.then(()=>{
+  console.log('Response table created');
 })
 .catch((err)=>{
   console.error('Error:',err);
