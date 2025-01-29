@@ -353,6 +353,7 @@ router.get('/getBusinessTypeById/:id', async (req, res) => {
   }
 });
 
+
 // /////////////////////// Employee //////////////////////
 
 // router.post('/newEmployeeCategory', async (req, res) => {
@@ -854,7 +855,7 @@ router.get('/listCompanies', async (req, res) => {
 
     // Fetch the paginated list of companies
     const companyList = await User.findAll({
-      order: [["id", "DESC"]],
+      order: [["caab_id", "DESC"]],
       offset: offset,
       limit: pageSize, // Added limit to restrict the number of results
     });
