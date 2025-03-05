@@ -1,7 +1,6 @@
 require('dotenv').config();
 const { DataTypes, Sequelize } = require('sequelize');
 
-
 const db = require('./db');
 
 const branchAdmin = db.define('branchAdmin', {
@@ -17,7 +16,6 @@ const branchAdmin = db.define('branchAdmin', {
   district: { type: DataTypes.STRING, defaultValue: "" },
   business_type: { type: DataTypes.STRING, defaultValue: "" },
   no_female: { type: DataTypes.STRING, defaultValue: "" },
-  //no_male:{type:DataTypes.STRING,defaultValue:""},
   total_employees: { type: DataTypes.STRING, defaultValue: "" },
   no_contract: { type: DataTypes.STRING, defaultValue: "" },
   no_migrant: { type: DataTypes.STRING, defaultValue: "" },

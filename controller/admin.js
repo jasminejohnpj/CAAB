@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const department = require("../model/department");
 const businesstype = require("../model/businesstype");
-const employees = require('../model/employees');
 const roles = require("../model/role");
 const laws = require("../model/law");
 const Questions = require('../model/questions');
@@ -12,7 +11,9 @@ const branchAdmin = require("../model/branchAdmin");
 const db = require("../model/db");
 const User = require("../model/user");
 const category = require("../model/category");
+
 const questionResponse = require("../model/response");
+const caabAdmin = require('../model/caabAdmin')
 
 
 router.post("/query", async (req, res) => {
@@ -354,96 +355,6 @@ router.get('/getBusinessTypeById/:id', async (req, res) => {
 });
 
 
-// /////////////////////// Employee //////////////////////
-
-// router.post('/newEmployeeCategory', async (req, res) => {
-//   try {
-//     const { min, operator, max, emp_count_type, emp_category, department_name, law, description, section } = req.body;
-//     const newEmployee = await employees.create({
-//       min,
-//       operator,
-//       max,
-//       emp_count_type,
-//       emp_category,
-//       department_name,
-//       law,
-//       description,
-//       section
-//     });
-
-//     return res.status(200).json({ message: "Data inserted successfully" });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: 'Internal server error', error });
-//   }
-// });
-
-// router.get('/listEmployeeCategory', async (req, res) => {
-//   try {
-//     const EmployeesCategory = await employees.findAll();
-//     return res.status(200).json({ message: "employee category list ", EmployeesCategory });
-//   } catch (error) {
-//     return res.status(500).json({ message: "Internal server error", error });
-//   }
-// });
-
-// router.put('/updateEmployeeCategory/:id', async (req, res) => {
-//   try {
-//     const id = req.params.id;
-//     const data = req.body;
-//     if (!id) {
-//       return res.status(400).json({ message: "id required" });
-//     }
-//     if (!data) {
-//       return res.status(400).json({ message: "data required" });
-//     }
-//     const existingcategory = await employees.findOne({ where: { id } });
-//     if (!existingcategory) {
-//       return res.status(204).json({ message: "data not found" });
-//     }
-//     const updatedEmployee = await employees.update(data, { where: { id } });
-//     return res.status(200).json({ message: "employee category updated successfully" });
-//   } catch (error) {
-//     return res.status(500).json({ message: 'Internal server error', error })
-//   }
-// });
-
-// router.delete('/deleteEmployeeCategory/:id', async (req, res) => {
-//   try {
-//     const id = req.params.id;
-//     if (!id) {
-//       return res.status(400).json({ message: 'id required' });
-//     }
-//     const existingcategory = await employees.findOne({ where: { id } });
-//     if (!existingcategory) {
-//       return res.status(204).json({ message: "data not found" });
-//     }
-//     await existingcategory.destroy();
-//     return res.status(200).json({ message: "employee category deleted" });
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500).json({ message: 'Internal server error', error })
-//   }
-// });
-
-// router.get('/employeeCategoryById/:id', async (req, res) => {
-//   try {
-//     const id = req.params.id;
-//     if (!id) {
-//       return res.status(401).json({ message: "id required" });
-//     }
-//     const employees = await employees.findAll({ where: { id } });
-//     if (!employees) {
-//       return res.status(204).json({ message: "employee not found" });
-//     }
-//     return res.status(200).json({ message: "emloyee details", employees });
-//   }
-//   catch (error) {
-//     return res.status(500).json({ message: "Internal server error" });
-//   }
-// });
-
-
 //////////////////////law //////////////////////////////
 
 router.post('/addLaw', async (req, res) => {
@@ -462,6 +373,7 @@ router.post('/addLaw', async (req, res) => {
     return res.status(200).json({ message: "law created successfully" });
 
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "internal server error" });
   }
 });
@@ -720,6 +632,11 @@ router.get('/evaluationQuestions', async (req, res) => {
   }
 });
 
+
+
+
+/////////////////// Role //////////////////
+
 router.post("/createRole", async (req, res) => {
   try {
     const { role_name, access, allowed_routes } = req.body;
@@ -879,50 +796,82 @@ router.get('/listCompanies', async (req, res) => {
   }
 });
 
-router.post('/evaluationResponse', async (req, res) => {
+
+
+router.post('/grading', async (req, res) => {
   try {
-    const { inputdata } = req.body; // Extract `inputdata` from request body
-
-    // Check if `inputdata` is provided and is an array
-    if (!inputdata || !Array.isArray(inputdata) || inputdata.length === 0) {
-      return res.status(400).json({ message: "Input data must be a non-empty array" });
-    }
-
-    // Extract `branch_id` from the first object to validate the branch
-    const branch_id = inputdata[0].branch_id;
-
+    const { branch_id } = req.body;
     if (!branch_id) {
-      return res.status(400).json({ message: "Branch ID is required" });
+      return res.status(400).json({ message: "id not found" });
     }
 
-    // Check if the branch exists
-    const branch = await branchAdmin.findOne({
-      where: { branch_id },
+    const branchResponses = await questionResponse.findAll({ where: { branch_id } });
+
+    if (!branchResponses || branchResponses.length === 0) {
+      return res.status(404).json({ message: "no responses found" });
+    }
+
+    // Filter out "Not Applicable" responses
+    const validResponses = branchResponses.filter(response => {
+      return response.response?.trim().toLowerCase() !== "not applicable";
     });
 
-    if (!branch) {
-      return res.status(404).json({ message: "Branch not found" });
-    }
+    // Initialize gravity count objects
+    let allGravityCounts = { high: 0, medium: 0, low: 0 };
+    let yesGravityCounts = { high: 0, medium: 0, low: 0 };
 
-    // Use `bulkCreate` to insert multiple responses
-    const newResponses = await questionResponse.bulkCreate(
-      inputdata.map((data) => ({
-        branch_id: data.branch_id,
-        section: data.section,
-        questions: data.questions,
-        gravity: data.gravity,
-        response: data.response,
-      }))
-    );
+    // Process valid responses
+    validResponses.forEach(response => {
+      let normalizedResponse = response.response?.trim().toLowerCase();
+      let normalizedGravity = response.gravity?.trim().toLowerCase();
+
+      // Count gravity levels across all valid responses (Yes + No)
+      if (normalizedGravity === "high") allGravityCounts.high++;
+      else if (normalizedGravity === "medium") allGravityCounts.medium++;
+      else if (normalizedGravity === "low") allGravityCounts.low++;
+
+      if (normalizedResponse === "yes") {
+        // Count gravity levels within "Yes" responses
+        if (normalizedGravity === "high") yesGravityCounts.high++;
+        else if (normalizedGravity === "medium") yesGravityCounts.medium++;
+        else if (normalizedGravity === "low") yesGravityCounts.low++;
+      }
+    });
+
+    // Calculate weighted scores
+    const validHigh = allGravityCounts.high * 10;
+    const validMedium = allGravityCounts.medium * 5;
+    const validLow = allGravityCounts.low * 3;
+    const validTotal = validHigh + validMedium + validLow;
+
+    const yesHigh = yesGravityCounts.high * 10;
+    const yesMedium = yesGravityCounts.medium * 10;
+    const yesLow = yesGravityCounts.low * 10;
+    const yesTotal = yesHigh + yesMedium + yesLow;
+
+    // Calculate percentage
+    const gravityPercentage = validTotal > 0 ? (yesTotal / validTotal) * 100 : 0;
+
+    const Report = validResponses
+  .filter(response => response.response?.trim().toLowerCase() === "no")
+  .map(response => ({
+    section: response.section,
+    questions: response.questions
+  }));
 
     return res.status(200).json({
-      message: "Responses added successfully",
+      gravityPercentage,
+      Report
     });
+
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error", error });
+    return res.status(500).json({ message: "internal server error" });
   }
 });
 
-
 module.exports = router;
+
+
+
+

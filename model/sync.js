@@ -9,6 +9,10 @@ const branchAdmin = require('../model/branchAdmin')
 const documents = require('../model/document')
 const category = require('../model/category')
 const questionResponse = require('../model/response')
+const caabAdmin = require('../model/caabAdmin')
+
+
+
 department.sync({alter:true})
 .then(()=>{
   console.log('department table created');
@@ -98,6 +102,14 @@ category.sync({alter:true})
 questionResponse.sync({alter:true})
 .then(()=>{
   console.log('Response table created');
+})
+.catch((err)=>{
+  console.error('Error:',err);
+});
+
+caabAdmin.sync({alter:true})
+.then(()=>{
+  console.log('caabAdmin table created');
 })
 .catch((err)=>{
   console.error('Error:',err);
