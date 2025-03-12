@@ -10,6 +10,8 @@ const bcrypt = require('bcrypt');
 
 app.use(cors());
 
+app.use(cors({ origin: '*' }));
+
 const otpStore = {};
 
 function generateOTP() {
@@ -24,9 +26,6 @@ app.get('/test', async(req,res) =>{
         return res.status(500).json("internal server error")
     }
 });
-
-
-
 
 app.post('/login', async (req, res) => {
     try {

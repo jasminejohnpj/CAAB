@@ -788,9 +788,12 @@ router.get('/listCompanies', async (req, res) => {
   }
 });
 
-router.post('/grading', async (req, res) => {
+router.post('/grading', async (req, res) => { 
   try {
     const { branch_id } = req.body;
+
+    //console.log(branch_id);
+    
     
     if (!branch_id) {
       return res.status(400).json({ message: "Branch ID not found" });
@@ -800,7 +803,7 @@ router.post('/grading', async (req, res) => {
     const branchResponses = await questionResponse.findAll({ where: { branch_id } });
 
     if (!branchResponses || branchResponses.length === 0) {
-      return res.status(404).json({ message: "No responses found" });
+      return res.status(204).json({ message: "No responses found" });
     }
 
     // Filter responses to keep only "yes" and "no"
@@ -938,6 +941,7 @@ router.get('/gradingDetails/:branch_id' , async(req,res) =>{
     return res.status(500).json({message:"internal server error"});
   }
 });
+
 module.exports = router;
 
 
