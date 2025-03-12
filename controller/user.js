@@ -12,9 +12,11 @@ function generateOTP() {
     return Math.floor(1000 + Math.random() * 9000); 
 }
 
+
+
+
+
 ///////////////// login ///////////////////////////////
-
-
 
 router.get('/companyInfo/:caab_id', async (req, res) => {
     try {
@@ -113,6 +115,7 @@ router.post('/verifySuperAdminOtp', async (req, res) => {
     }
 });
 
+
 /////////////////// Branches//////////////////////////////////
 
 router.post('/addBranch', async (req, res) => {
@@ -173,7 +176,9 @@ router.get('/listBranches/:caab_id', async (req, res) => {
             return res.status(401).json({message:" caab id does not exist, no branches found"});
         }
         const branches = await branchAdmin.findAll({ where: { caab_id } });
+
         return res.status(200).json({ message: "branches are", branches });
+        
     } catch (error) {
         return res.status(500).json({ message: "internal server error" });
     }
@@ -191,9 +196,17 @@ router.get('/branchDetails/:branch_id', async (req, res) => {
         }
         const branchDetails = await branchAdmin.findAll({ where: { branch_id } });
         if (!branchDetails) {
-            return res.status(204).json({ message: "branch details not found" });
+            return res.status(204).json({ message: "branch details not found" });  
         }
-        return res.status(200).json({ message: "branch details are:", branchDetails });
+
+        const branchResponses = await questionResponse.findAll({ where: { branch_id } });
+        const NegativeCount = branchResponses.filter(response => {
+            const res = response.response?.trim().toLowerCase();
+            return res === "no"; // Correct comparison
+          }).length;
+
+
+        return res.status(200).json({ message: "branch details are:", branchDetails ,NegativeCount});
     }
     catch (error) {
         return res.status(500).json({ message: "internal server error" });
@@ -340,6 +353,7 @@ router.get('/documentById/:id', async (req, res) => {
     }
 });
 
+
 ////////////////// Responses /////////////////////
 
 router.post('/evaluationResponse', async (req, res) => {
@@ -381,9 +395,9 @@ router.post('/evaluationResponse', async (req, res) => {
       console.error(error);
       return res.status(500).json({ message: "Internal server error", error });
     }
-  });
+});
 
-  router.get('/viewResponse/:branch_id' ,async (req,res)=>{
+router.get('/viewResponse/:branch_id' ,async (req,res)=>{
     try{
 
         const branch_id = req.params;
@@ -398,66 +412,8 @@ router.post('/evaluationResponse', async (req, res) => {
     } catch (error){
         return res.status(500).json({message:"internal server error"});
     }
-  });
+});
 
-//   router.put('/editResponse', async(req,res) =>
-// {
-//     try{
-//         const data = req.body;
-//         const branch_id = req.body;
-//         if(!branch_id){
-//             return res.status(400).json({message:"branch id is required"});
-//         }
-//         const branch = await questionResponse.findAll({where:branch_id});
-//         if (!branch){
-//             return res.status(204).json({message:"no data available"});
-//         }
-//         const newResponse = await questionResponse.update({data, where:branch_id});
-
-//         return res.status(200).json({message:"data updated successfully"});
-//     } catch(error){
-//         return res.status(500).json({message:"internal server error"});
-//     }
-//    });
-
-//    router.put('/editResponses/:branch_id', async (req, res) => {
-//     try {
-//         const { branch_id } = req.params; // Extract branch_id from URL
-//         const records = req.body; // Expecting an array of records to update
-
-//         // Validate branch_id
-//         if (!branch_id || branch_id.trim() === '') {
-//             return res.status(400).json({ message: "Branch ID is required" });
-//         }
-
-//         // Validate request body (ensure it's an array)
-//         if (!Array.isArray(records) || records.length === 0) {
-//             return res.status(400).json({ message: "Invalid or empty records array" });
-//         }
-
-//         // Check if any records exist for this branch_id
-//         const existingRecords = await questionResponse.findAll({ where: { branch_id } });
-//         if (!existingRecords || existingRecords.length === 0) {
-//             return res.status(404).json({ message: "No data available for this branch ID" });
-//         }
-
-//         // Update multiple records
-//         for (const record of records) {
-//             const { id, ...updateData } = record; // Extract record ID and update data
-//             if (!id) continue; // Skip if no ID provided
-
-//             await questionResponse.update(updateData, {
-//                 where: { id, branch_id }
-//             });
-//         }
-
-//         return res.status(200).json({ message: "Records updated successfully" });
-
-//     } catch (error) {
-//         console.error("Error updating responses:", error);
-//         return res.status(500).json({ message: "Internal server error" });
-//     }
-// });
 router.put('/editResponses/:branch_id', async (req, res) => {
     try {
         const { inputdata } = req.body;

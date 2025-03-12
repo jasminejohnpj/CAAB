@@ -16,6 +16,18 @@ function generateOTP() {
     return Math.floor(1000 + Math.random() * 9000); 
 }
 
+//// test api/////
+app.get('/test', async(req,res) =>{
+    try{
+        return res.status(200).json("Test api ........")
+    } catch(error){
+        return res.status(500).json("internal server error")
+    }
+});
+
+
+
+
 app.post('/login', async (req, res) => {
     try {
         const { mobile } = req.body;
@@ -28,7 +40,7 @@ app.post('/login', async (req, res) => {
         // }
         const otp = generateOTP();
         otpStore[mobile] = otp;
-        console.log(`Generated OTP for ${mobile}: ${otp}`);
+        //console.log(`Generated OTP for ${mobile}: ${otp}`);
         return res.status(200).json({ message: "OTP sent successfully", otp });
     }
     catch (error) {
@@ -166,36 +178,6 @@ app.post('/addCompany', async (req, res) => {
     }
 });
 
-// app.post('/caabAdmin' , async(req,res)=>{
-//     try{
-//       const { user_name , password } = req.body;
-  
-//       if(!user_name && password){
-//         return res.status(401).json({message:"username and password are required"});
-//       }
-//       const user = await caabAdmin.findOne({where:{user_name}});
-//       let existingUser = null;
-//       if(user){
-//         existingUser = {
-//             user
-//         } 
-//       } else {
-
-      
-//       const admin = await caabAdmin.create({
-//         user_name,
-//         password
-//       });
-//       if(existingUser){
-//       const token = jwt.sign({ existingUser  }, process.env.JWT_SECRET);
-//       return res.status(200).json({message:"admin created", token});
-//     } catch(error){
-//         console.log(error);
-//       return res.status(500).json({message:"internal server error"});
-  
-//     }
-//   });
- 
 app.post('/newAdmin' , async(req,res) =>{
     try{
       const { user_name, password } = req.body;
@@ -218,7 +200,7 @@ app.post('/newAdmin' , async(req,res) =>{
       console.log(error);
       return res.status(500).json({message:"internal server error"});
     }
-  });
+});
 
 app.post('/adminLogin', async (req, res) => {
       try {
@@ -253,7 +235,7 @@ app.post('/adminLogin', async (req, res) => {
           console.error(error);
           return res.status(500).json({ message: "Internal server error" });
       }
-  });
+});
   
 const authenticateToken = require('./auth/auth.js');
 const { error } = require('console');

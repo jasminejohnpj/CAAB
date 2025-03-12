@@ -13,7 +13,8 @@ const User = require("../model/user");
 const category = require("../model/category");
 
 const questionResponse = require("../model/response");
-const caabAdmin = require('../model/caabAdmin')
+const caabAdmin = require('../model/caabAdmin');
+const { response } = require("../router/routing");
 
 
 router.post("/query", async (req, res) => {
@@ -88,15 +89,6 @@ router.get('/getDepartmentsByBusinessType/:business_type', async (req, res) => {
     return res.status(500).json({ message: "Internal server error", error });
   }
 });
-
-// router.get("/listDepartment", async (req, res) => {
-//   try {
-//     const data = await department.findAll();
-//     return res.status(200).json({ message: "department list", data });
-//   } catch (error) {
-//     return res.status(500).json({ message: "internal server error", error });
-//   }
-// });
 
 router.get("/listDepartment", async (req, res) => {
   try {
@@ -455,6 +447,7 @@ router.delete('/deleteLaw/:id', async (req, res) => {
   }
 });
 
+
 ///////////////////// Questions ////////////////////////
 
 router.post('/addQuestions', async (req, res) => {
@@ -633,8 +626,6 @@ router.get('/evaluationQuestions', async (req, res) => {
 });
 
 
-
-
 /////////////////// Role //////////////////
 
 router.post("/createRole", async (req, res) => {
@@ -729,6 +720,7 @@ router.delete("/deleteRoleById/:id", async (req, res) => {
   }
 });
 
+
 //////////////// caab admin //////////////////
 
 router.get('/listSections', async (req, res) => {
@@ -796,48 +788,48 @@ router.get('/listCompanies', async (req, res) => {
   }
 });
 
-
-
 router.post('/grading', async (req, res) => {
   try {
     const { branch_id } = req.body;
+    
     if (!branch_id) {
-      return res.status(400).json({ message: "id not found" });
+      return res.status(400).json({ message: "Branch ID not found" });
     }
 
+    // Fetch all responses for the given branch
     const branchResponses = await questionResponse.findAll({ where: { branch_id } });
 
     if (!branchResponses || branchResponses.length === 0) {
-      return res.status(404).json({ message: "no responses found" });
+      return res.status(404).json({ message: "No responses found" });
     }
 
-    // Filter out "Not Applicable" responses
+    // Filter responses to keep only "yes" and "no"
     const validResponses = branchResponses.filter(response => {
-      return response.response?.trim().toLowerCase() !== "not applicable";
+      const res = response.response?.trim().toLowerCase();
+      return res === "yes" || res === "no";
     });
 
     // Initialize gravity count objects
     let allGravityCounts = { high: 0, medium: 0, low: 0 };
     let yesGravityCounts = { high: 0, medium: 0, low: 0 };
 
-    // Process valid responses
+    // Process valid responses to count gravity levels
     validResponses.forEach(response => {
       let normalizedResponse = response.response?.trim().toLowerCase();
       let normalizedGravity = response.gravity?.trim().toLowerCase();
 
-      // Count gravity levels across all valid responses (Yes + No)
+      // Count gravity levels for all "yes" and "no" responses
       if (normalizedGravity === "high") allGravityCounts.high++;
       else if (normalizedGravity === "medium") allGravityCounts.medium++;
       else if (normalizedGravity === "low") allGravityCounts.low++;
 
+      // Count gravity levels for "yes" responses only
       if (normalizedResponse === "yes") {
-        // Count gravity levels within "Yes" responses
         if (normalizedGravity === "high") yesGravityCounts.high++;
         else if (normalizedGravity === "medium") yesGravityCounts.medium++;
         else if (normalizedGravity === "low") yesGravityCounts.low++;
       }
     });
-
     // Calculate weighted scores
     const validHigh = allGravityCounts.high * 10;
     const validMedium = allGravityCounts.medium * 5;
@@ -845,31 +837,107 @@ router.post('/grading', async (req, res) => {
     const validTotal = validHigh + validMedium + validLow;
 
     const yesHigh = yesGravityCounts.high * 10;
-    const yesMedium = yesGravityCounts.medium * 10;
-    const yesLow = yesGravityCounts.low * 10;
+    const yesMedium = yesGravityCounts.medium * 5;
+    const yesLow = yesGravityCounts.low * 3;
     const yesTotal = yesHigh + yesMedium + yesLow;
 
-    // Calculate percentage
-    const gravityPercentage = validTotal > 0 ? (yesTotal / validTotal) * 100 : 0;
+    // Calculate percentage of "yes" responses
+    // const gravityPercentage = validTotal > 0 ? (yesTotal / validTotal) * 100 : 0;
 
+    const gravityPercentage = validTotal > 0 ? Math.floor((yesTotal / validTotal) * 100) : 0;
+
+
+  const totalcount  = branchResponses.filter(response => {
+    const res = response.response?.trim().toLowerCase();
+    return res === "yes" || res === "no";
+    }).length;
+  const yesCount = branchResponses.filter(response => {
+    const res = response.response?.trim().toLowerCase();
+    return res === "yes"; // Correct comparison
+    }).length;
+
+    const completedPercentage = yesCount/totalcount * 100;
+    // Generate report for "no" responses
     const Report = validResponses
-  .filter(response => response.response?.trim().toLowerCase() === "no")
-  .map(response => ({
-    section: response.section,
-    questions: response.questions
-  }));
+      .filter(response => response.response?.trim().toLowerCase() === "no")
+      .map(response => ({
+        section: response.section,
+        questions: response.questions
+      }));
 
     return res.status(200).json({
       gravityPercentage,
-      Report
+      Report,
+      completedPercentage,
+      
     });
 
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "internal server error" });
+    console.error("Error in /grading:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
+router.get('/gradingDetails/:branch_id' , async(req,res) =>{
+  try{
+    const {branch_id } = req.params;
+    if (!branch_id) {
+      return res.status(400).json({ message: "Branch ID not found" });
+    }
+
+    const branchResponses = await questionResponse.findAll({ where: { branch_id } });
+
+    if (!branchResponses || branchResponses.length === 0) {
+      return res.status(404).json({ message: "No responses found" });
+    }
+
+    const validResponses = branchResponses.filter(response => {
+      const res = response.response?.trim().toLowerCase();
+      return res === "yes" || res === "no";
+    });
+
+    let allGravityCounts = { high: 0, medium: 0, low: 0 };
+    let yesGravityCounts = { high: 0, medium: 0, low: 0 };
+
+    validResponses.forEach(response => {
+      let normalizedResponse = response.response?.trim().toLowerCase();
+      let normalizedGravity = response.gravity?.trim().toLowerCase();
+
+      if (normalizedGravity === "high") allGravityCounts.high++;
+      else if (normalizedGravity === "medium") allGravityCounts.medium++;
+      else if (normalizedGravity === "low") allGravityCounts.low++;
+
+      if (normalizedResponse === "yes") {
+        if (normalizedGravity === "high") yesGravityCounts.high++;
+        else if (normalizedGravity === "medium") yesGravityCounts.medium++;
+        else if (normalizedGravity === "low") yesGravityCounts.low++;
+      }
+    });
+    // Calculate weighted scores
+    const validHigh = allGravityCounts.high * 10;
+    const validMedium = allGravityCounts.medium * 5;
+    const validLow = allGravityCounts.low * 3;
+    const validTotal = validHigh + validMedium + validLow;
+
+    const yesHigh = yesGravityCounts.high * 10;
+    const yesMedium = yesGravityCounts.medium * 5;
+    const yesLow = yesGravityCounts.low * 3;
+    const yesTotal = yesHigh + yesMedium + yesLow;
+
+    // Calculate percentage of "yes" responses
+    const gravityPercentage = validTotal > 0 ? ((yesTotal / validTotal) * 100).toFixed(2) : "0.00";
+    const NegativeCount = branchResponses.filter(response => {
+      const res = response.response?.trim().toLowerCase();
+      return res === "no"; 
+    }).length;
+
+    return res.status(200).json({ gravityPercentage, NegativeCount });
+
+  } catch (error){
+    console.log(error)
+    return res.status(500).json({message:"internal server error"});
+  }
+});
 module.exports = router;
 
 
