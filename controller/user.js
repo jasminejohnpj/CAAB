@@ -12,10 +12,6 @@ function generateOTP() {
     return Math.floor(1000 + Math.random() * 9000); 
 }
 
-
-
-
-
 ///////////////// login ///////////////////////////////
 
 router.get('/companyInfo/:caab_id', async (req, res) => {
@@ -165,6 +161,7 @@ router.post('/addBranch', async (req, res) => {
 });
 
 router.get('/listBranches/:caab_id', async (req, res) => {
+    
     try {
         const { caab_id } = req.params;
 
@@ -173,7 +170,7 @@ router.get('/listBranches/:caab_id', async (req, res) => {
         }
         const caabId = await branchAdmin.findOne({where:{caab_id}});
         if(!caabId){
-            return res.status(401).json({message:" caab id does not exist, no branches found"});
+            return res.status(204).json({message:"no branches found"});
         }
         const branches = await branchAdmin.findAll({ where: { caab_id } });
 

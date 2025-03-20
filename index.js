@@ -7,6 +7,7 @@ app.use(express.json({ limit: "10mb" }));
 const User = require('./model/user.js');
 const caabAdmin = require('./model/caabAdmin.js');
 const bcrypt = require('bcrypt');
+const branchAdmin = require('./model/branchAdmin.js');
 
 app.use(cors());
 
@@ -15,8 +16,13 @@ app.use(cors({ origin: '*' }));
 const otpStore = {};
 
 function generateOTP() {
+
     return Math.floor(1000 + Math.random() * 9000); 
 }
+
+const authenticateToken = require('./auth/auth.js');
+const { error } = require('console');
+app.use('/api/v1', authenticateToken, require('./router/routing'));
 
 //// test api/////
 app.get('/test', async(req,res) =>{
@@ -116,8 +122,6 @@ app.post('/verify-otp',async (req, res) => {
                 message: "Login successful",
                 activeUser: true,
                 existingUser,
-                
-
                 token
 
             });
@@ -158,7 +162,7 @@ app.post('/addCompany', async (req, res) => {
             const latestIdNumber = parseInt(latestUser.caab_id.slice(4), 10);
             newCaabId = `CAAB${(latestIdNumber + 1).toString().padStart(4, '0')}`;
         }
-
+        const token = jwt.sign({ existingUser  }, process.env.JWT_SECRET);
         // Create a new company record
         const newUser = await User.create({
             caab_id: newCaabId,
@@ -170,7 +174,7 @@ app.post('/addCompany', async (req, res) => {
             role
         });
 
-        return res.status(200).json({ message: "Company registered successfully", data: newUser });
+        return res.status(200).json({ message: "Company registered successfully", data: newUser,token });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal server error", error: error.message });
@@ -205,7 +209,6 @@ app.post('/adminLogin', async (req, res) => {
       try {
         
           const { user_name, password } = req.body;
-        console.log("adminlogin");
           // Validate required fields
           if (!user_name || !password) {
               return res.status(400).json({ message: "Username and password are required" });
@@ -236,8 +239,6 @@ app.post('/adminLogin', async (req, res) => {
       }
 });
   
-const authenticateToken = require('./auth/auth.js');
-const { error } = require('console');
-app.use('/api/v1', authenticateToken, require('./router/routing'));
+
 
 module.exports=app;

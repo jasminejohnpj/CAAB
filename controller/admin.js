@@ -11,11 +11,8 @@ const branchAdmin = require("../model/branchAdmin");
 const db = require("../model/db");
 const User = require("../model/user");
 const category = require("../model/category");
-
 const questionResponse = require("../model/response");
 const caabAdmin = require('../model/caabAdmin');
-const { response } = require("../router/routing");
-
 
 router.post("/query", async (req, res) => {
   try {
@@ -346,7 +343,6 @@ router.get('/getBusinessTypeById/:id', async (req, res) => {
   }
 });
 
-
 //////////////////////law //////////////////////////////
 
 router.post('/addLaw', async (req, res) => {
@@ -446,7 +442,6 @@ router.delete('/deleteLaw/:id', async (req, res) => {
     return res.status(500).json({ message: "internal server error", error })
   }
 });
-
 
 ///////////////////// Questions ////////////////////////
 
@@ -625,7 +620,6 @@ router.get('/evaluationQuestions', async (req, res) => {
   }
 });
 
-
 /////////////////// Role //////////////////
 
 router.post("/createRole", async (req, res) => {
@@ -719,7 +713,6 @@ router.delete("/deleteRoleById/:id", async (req, res) => {
     return res.status(500).json({ message: "Internal server error", error });
   }
 });
-
 
 //////////////// caab admin //////////////////
 
@@ -943,6 +936,10 @@ router.get('/gradingDetails/:branch_id' , async(req,res) =>{
 });
 
 module.exports = router;
+
+
+
+
 
 
 
